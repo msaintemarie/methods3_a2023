@@ -1,0 +1,36 @@
+---
+title: "Assignment 2 - Meta-analysis of pitch in schizophrenia"
+author: "Riccardo Fusaroli"
+date: "16/8/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 2: meta-analysis
+
+## Questions to be answered
+
+1. Simulate data to setup the analysis and gain insight on the structure of the problem. Simulate one dataset of 100 studies (n of participants should follow a normal distribution with mean of 20, sd of 10, but no fewer than 10 participants), with a mean effect size of 0.4, average deviation by study of .4 and measurement error of .8. The data you get should have one row per study, with an effect size mean and standard error. Build a proper bayesian model to analyze the simulated data. Then simulate publication bias (only some of the studies you simulate are likely to be published, which?), the effect of publication bias on your estimates (re-run the model on published studies, assess the difference), and discuss what this implies for your model. remember to use at least one plot to visualize your results. 
+BONUS question: do a power/precision analysis: w this kind of sample sizes (participants) how many studies would you need to acquire good precision (e.g. .1 sd in the pop level estimate)
+
+2. What is the current evidence for distinctive vocal patterns in schizophrenia? 
+Use the data from Parola et al (2020) - https://www.dropbox.com/s/0l9ur0gaabr80a8/Matrix_MetaAnalysis_Diagnosis_updated290719.xlsx?dl=0 - focusing on pitch variability (PITCH_F0SD).  Describe the data available (studies, participants). Using the model from question 1 analyze the data, visualize and report the findings: population level effect size; how well studies reflect it; influential studies, publication bias. 
+BONUS question: assess the effect of task on the estimates (model comparison with baseline model)
+
+
+# Question 1
+
+```{r}
+
+```
+
+## Question 2
+
+```{r}
+
+
+```
+

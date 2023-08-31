@@ -1,0 +1,935 @@
+---
+title: "Assignment 1 - Language development in autistic and neurotypical children"
+output: html_document
+date: "2022-08-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 1  - Language development in autistic and neurotypical children
+
+## Quick recap
+Autism Spectrum Disorder is often related to language impairment. However, this phenomenon has rarely been empirically traced in detail: i) relying on actual naturalistic language production, ii) over extended periods of time.
+
+We therefore videotaped circa 30 kids with ASD and circa 30 comparison kids (matched by linguistic performance at visit 1) for ca. 30 minutes of naturalistic interactions with a parent. We repeated the data collection 6 times per kid, with 4 months between each visit. We transcribed the data and counted: 
+i) the amount of words that each kid uses in each video. Same for the parent.
+ii) the amount of unique words that each kid uses in each video. Same for the parent.
+iii) the amount of morphemes per utterance (Mean Length of Utterance) displayed by each child in each video. Same for the parent. 
+
+This data is in the file you prepared in the previous class, but you can also find it here:https://www.dropbox.com/s/d6eerv6cl6eksf3/data_clean.csv?dl=0
+
+
+## The structure of the assignment
+
+We will be spending a few weeks with this assignment. In particular, we will:
+
+Part 1) simulate data in order to better understand the model we need to build, and to better understand how much data we would have to collect to run a meaningful study (precision analysis)
+
+Part 2) analyze our empirical data and interpret the inferential results
+
+Part 3) use your model to predict the linguistic trajectory of new children and assess the performance of the model based on that.
+
+As you work through these parts, you will have to produce a written document (separated from the code) answering the following questions:
+
+Q1 - Briefly describe your simulation process, its goals, and what you have learned from the simulation. Add at least a plot showcasing the results of the simulation. Make a special note on sample size considerations: how much data do you think you will need? what else could you do to increase the precision of your estimates?
+
+Q2 - Briefly describe the empirical data and how they compare to what you learned from the simulation (what can you learn from them?). Briefly describe your model(s) and model quality. Report the findings: how does development differ between autistic and neurotypical children (N.B. remember to report both population and individual level findings)? which additional factors should be included in the model? Add at least one plot showcasing your findings.
+
+Q3 - Given the model(s) from Q2, how well do they predict the data? Discuss both in terms of absolute error in training vs testing; and in terms of characterizing the new kids' language development as typical or in need of support.
+
+
+Below you can find more detailed instructions for each part of the assignment.
+
+## Part 1 - Simulating data
+
+Before we even think of analyzing the data, we should make sure we understand the problem, and we plan the analysis. To do so, we need to simulate data and analyze the simulated data (where we know the ground truth).
+
+In particular, let's imagine we have n autistic and n neurotypical children. We are simulating their average utterance length (Mean Length of Utterance or MLU) in terms of words, starting at Visit 1 and all the way to Visit 6.
+In other words, we need to define a few parameters:
+- average MLU for ASD (population mean) at Visit 1 and average individual deviation from that (population standard deviation)
+- average MLU for TD (population mean) at Visit 1 and average individual deviation from that (population standard deviation)
+- average change in MLU by visit for ASD (population mean) and average individual deviation from that (population standard deviation)
+- average change in MLU by visit for TD (population mean) and average individual deviation from that (population standard deviation)
+- an error term. Errors could be due to measurement, sampling, all sorts of noise. 
+
+Note that this makes a few assumptions: population means are exact values; change by visit is linear (the same between visit 1 and 2 as between visit 5 and 6). This is fine for the exercise. In real life research, you might want to vary the parameter values much more, relax those assumptions and assess how these things impact your inference.
+
+
+We go through the literature and we settle for some values for these parameters:
+- average MLU for ASD and TD: 1.5 (remember the populations are matched for linguistic ability at first visit)
+- average individual variability in initial MLU for ASD 0.5; for TD 0.3 (remember ASD tends to be more heterogeneous)
+- average change in MLU for ASD: 0.4; for TD 0.6 (ASD is supposed to develop less)
+- average individual variability in change for ASD 0.4; for TD 0.2 (remember ASD tends to be more heterogeneous)
+- error is identified as 0.2
+
+This would mean that on average the difference between ASD and TD participants is 0 at visit 1, 0.2 at visit 2, 0.4 at visit 3, 0.6 at visit 4, 0.8 at visit 5 and 1 at visit 6.
+
+With these values in mind, simulate data, plot the data (to check everything is alright); and set up an analysis pipeline.
+Remember the usual bayesian workflow:
+- define the formula
+- define the prior
+- prior predictive checks
+- fit the model
+- model quality checks: traceplots, divergences, rhat, effective samples
+- model quality checks: posterior predictive checks, prior-posterior update checks
+- model comparison
+
+Once the pipeline is in place, loop through different sample sizes to assess how much data you would need to collect. N.B. for inspiration on how to set this up, check the tutorials by Kurz that are linked in the syllabus.
+
+BONUS questions for Part 1: what if the difference between ASD and TD was 0? how big of a sample size would you need? What about different effect sizes, and different error terms?
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  brms,
+  patchwork
+)
+
+seed <- 1000
+
+# Define the sample size per group
+n <- 50
+visits <- 6
+
+# Define the dataset (1000 td, 1000 asd, 6 visits)
+d <- tibble(expand.grid(ID = seq(n), Diagnosis = c("ASD", "TD"), Visit = seq(visits)))
+
+# Define the parameters
+mu_asd <- 2
+sigma_asd <- 0.5
+mu_td <- 2
+sigma_td <- 0.3
+mu_visit_asd <- 0.4
+sigma_visit_asd <- 0.4
+mu_visit_td <- 0.6
+sigma_visit_td <- 0.2
+error <- 0.2
+
+# Generate individual intercept (MLU at visit 1) and individual slope (change by visit)
+d <- d %>% mutate(
+  IndividualIntercept = NA,
+  IndividualSlope = NA
+)
+
+## NB for now random effects are modeled as uncorrelated. One could specify a rho and generate individual variations as part of a multivariate normal
+for (i in seq(n)) {
+  d$IndividualIntercept[d$ID == i & d$Diagnosis == "ASD"] <- rnorm(1, mu_asd, sigma_asd)
+  d$IndividualIntercept[d$ID == i & d$Diagnosis == "TD"] <- rnorm(1, mu_td, sigma_td)
+  d$IndividualSlope[d$ID == i & d$Diagnosis == "ASD"] <- rnorm(1, mu_visit_asd, sigma_visit_asd)
+  d$IndividualSlope[d$ID == i & d$Diagnosis == "TD"] <- rnorm(1, mu_visit_td, sigma_visit_td)  
+}
+
+# Calculate MLU per each datapoint
+d <- d %>% mutate(
+  MLU = IndividualIntercept + IndividualSlope * (Visit - 1) + rnorm(1, 0, error)
+  )
+
+# Check the data - looking at the first few rows
+glimpse(d)
+
+# Check the data - plotting the data
+ggplot(d, aes(Visit, MLU, color = Diagnosis)) + geom_point(alpha = 0.2) + geom_smooth(method = lm) + theme_bw()
+
+## MAKE SURE TO PLOT SIMULATED VS UNDERLYING VALUES TO SHOW NOISE
+
+
+# MLUs below 0 are impossible. Quick fix. A better fix would be to adopt a log link.
+d$MLU[d$MLU < 0] <- 0
+
+# Check the data - plotting the data
+ggplot(d, aes(Visit, MLU, color = Diagnosis)) + geom_point(alpha = 0.2) + geom_smooth(method = lm) + theme_bw()
+
+# Make sure ASD and TD do not share a ID
+d$ID[d$Diagnosis == "TD"] <- d$ID[d$Diagnosis == "TD"] + 1000
+
+# Define simple formulas
+m_f0 <- bf(MLU ~ 1 + Visit + (1 + Visit | ID))
+
+m_f1 <- bf(MLU ~ 0 + Diagnosis + Diagnosis:Visit + (1 + Visit | gr(ID, by = Diagnosis)))
+
+# Define fancy formula
+m_f2 <- bf(MLU ~ 0 + Diagnosis + Diagnosis:Visit + (1 + Visit | gr(ID, by = Diagnosis)),
+          sigma ~ 0 + Diagnosis + (1 | gr(ID, by = Diagnosis)))
+
+# Get priors
+get_prior(m_f0, data = d)
+
+m_p0 <- c(
+  prior(normal(1, 1), class = Intercept),
+  prior(normal(0, .5), class = b),
+  prior(normal(0, 1), class = sd),
+  prior(normal(0, 1), class = sigma),
+  prior(lkj(3), class = cor)
+)
+
+get_prior(m_f1, data = d)
+
+m_p1 <- c(
+  prior(normal(0, .5), class = b),
+  prior(normal(1, 1), class = b, coef = DiagnosisASD),
+  prior(normal(1, 1), class = b, coef = DiagnosisTD),
+  prior(normal(0, 1), class = sd),
+  prior(normal(0, 1), class = sigma),
+  prior(lkj(3), class = cor)
+)
+
+get_prior(m_f2, data = d)
+
+m_p2 <- c(
+  prior(normal(1, 1), class = b),
+  prior(normal(1, 1), class = b, coef = DiagnosisASD),
+  prior(normal(1, 1), class = b, coef = DiagnosisTD),
+  prior(normal(0, 1), class = sd),
+  #prior(normal(0, 1), class = b, dpar = sigma),
+  prior(normal(0, .5), class = b, dpar = sigma),
+  #prior(normal(0, 1), class = sd, dpar = sigma),
+  prior(normal(0, .1), class = sd, dpar = sigma),
+  prior(lkj(3), class = cor)
+)
+
+# Prior predictive checks
+m0_prior <- brm(
+  m_f0,
+  d,
+  family = gaussian,
+  prior = m_p0,
+  sample_prior = "only",
+  backend = "cmdstanr",
+  chains = 2,
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+m1_prior <- brm(
+  m_f1,
+  d,
+  family = gaussian,
+  prior = m_p1,
+  sample_prior = "only",
+  backend = "cmdstanr",
+  chains = 2,
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+m2_prior <- brm(
+  m_f2,
+  d,
+  family = gaussian,
+  prior = m_p2,
+  sample_prior = "only",
+  backend = "cmdstanr",
+  chains = 2,
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+# Check prior predictive checks and iterate til happy
+p0 <- pp_check(m0_prior, ndraws = 100)
+p1 <- pp_check(m1_prior, ndraws = 100)
+p2 <- pp_check(m2_prior, ndraws = 100)
+
+p0 + p1 + p2
+
+# 
+m0 <- brm(
+  m_f0,
+  d,
+  family = gaussian,
+  prior = m_p0,
+  sample_prior = T,
+  backend = "cmdstanr",
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+m1 <- brm(
+  m_f1,
+  d,
+  family = gaussian,
+  prior = m_p1,
+  sample_prior = T,
+  backend = "cmdstanr",
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+m2 <- brm(
+  m_f2,
+  d,
+  family = gaussian,
+  prior = m_p2,
+  sample_prior = T,
+  backend = "cmdstanr",
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+# basic model quality checks
+m0
+plot(m0)
+m1
+plot(m1)
+m2
+plot(m2)
+
+# Posterior predictive checks
+p3 <- pp_check(m0, ndraws = 100)
+p4 <- pp_check(m1, ndraws = 100)
+p5 <- pp_check(m2, ndraws = 100)
+
+(p0 + p1 + p2) / (p3 + p4 + p5)
+
+# Extracting posterior samples
+post0 <- as_draws_df(m0)
+post1 <- as_draws_df(m1)
+post2 <- as_draws_df(m2)
+
+ggplot(post0) +
+  geom_histogram(aes(Intercept), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_Intercept), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post0) +
+  geom_histogram(aes(b_Visit), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_b), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post0) +
+  geom_histogram(aes(sd_ID__Intercept), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(sd_ID__Visit), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_sd_ID), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post0) +
+  geom_histogram(aes(sigma), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_sigma), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(b_DiagnosisASD), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(b_DiagnosisTD), alpha = 0.5, fill = "blue") +
+  geom_histogram(aes(prior_b_DiagnosisASD), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+
+post1 %>% mutate(
+  Effect = b_DiagnosisTD - b_DiagnosisASD,
+  PriorEffect = prior_b_DiagnosisTD - prior_b_DiagnosisASD
+) %>% ggplot() +
+  geom_histogram(aes(Effect), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(PriorEffect), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(`b_DiagnosisASD:Visit`), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(`b_DiagnosisTD:Visit`), alpha = 0.5, fill = "blue") +
+  geom_histogram(aes(`prior_b_DiagnosisASD:Visit`), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(`cor_ID__Intercept:DiagnosisASD__Visit:DiagnosisASD`), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(`cor_ID__Intercept:DiagnosisTD__Visit:DiagnosisTD`), alpha = 0.5, fill = "blue") +
+  geom_histogram(aes(prior_cor_ID__1), alpha = 0.5, fill = "red")
+
+
+ggplot(post1) +
+  geom_histogram(aes(`sd_ID__Intercept:DiagnosisASD`), alpha = 0.5, fill = "darkgreen") +
+  geom_histogram(aes(`sd_ID__Intercept:DiagnosisTD`), alpha = 0.5, fill = "lightgreen") +
+  geom_histogram(aes(`sd_ID__Visit:DiagnosisASD`), alpha = 0.5, fill = "darkblue") +
+  geom_histogram(aes(`sd_ID__Visit:DiagnosisTD`), alpha = 0.5, fill = "lightblue") +
+  geom_histogram(aes(prior_sd_ID), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(sigma), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_sigma), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+## Same for m2 (still missing)
+
+# Model comparison
+m0 <- add_criterion(m0, criterion = "loo")
+m1 <- add_criterion(m1, criterion = "loo")
+m2 <- add_criterion(m2, criterion = "loo")
+
+loo_compare(m0, m1, m2)
+loo_model_weights(m0, m1, m2)
+
+## Now let's loop
+
+# Create a function to simulate the data given n and seed
+
+n_sim <- 10
+
+sim_d_and_fit <- function(seed, n, visits) {
+  
+  set.seed(seed)
+  print(n)
+  print(seed)
+  
+  visits <- 6
+  mu_asd <- 1.5
+  sigma_asd <- 0.5
+  mu_td <- 1.5
+  sigma_td <- 0.3
+  mu_visit_asd <- 0.4
+  sigma_visit_asd <- 0.4
+  mu_visit_td <- 0.6
+  sigma_visit_td <- 0.2
+  error <- 0.2
+  
+  d <- tibble(expand.grid(ID = seq(n), Diagnosis = c("ASD", "TD"), Visit = seq(visits)))
+  
+  d <- d %>% mutate(
+    IndividualIntercept = NA,
+    IndividualSlope = NA
+  )
+  
+  for (i in seq(n)) {
+    d$IndividualIntercept[d$ID == i & d$Diagnosis == "ASD"] <- rnorm(1, mu_asd, sigma_asd)
+    d$IndividualIntercept[d$ID == i & d$Diagnosis == "TD"] <- rnorm(1, mu_td, sigma_td)
+    d$IndividualSlope[d$ID == i & d$Diagnosis == "ASD"] <- rnorm(1, mu_visit_asd, sigma_visit_asd)
+    d$IndividualSlope[d$ID == i & d$Diagnosis == "TD"] <- rnorm(1, mu_visit_td, sigma_visit_td)  
+  }
+  
+  # Calculate MLU per each datapoint
+  d <- d %>% mutate(
+    MLU = IndividualIntercept + IndividualSlope * (Visit - 1) + rnorm(1, 0, error),
+    MLU = ifelse(MLU < 0, 0, MLU) # MLUs below 0 are impossible
+  )
+  
+  d$ID[d$Diagnosis == "TD"] <- d$ID[d$Diagnosis == "TD"] + 1000
+  
+  m1a <- update(m1,
+         newdata = d,
+         backend = "cmdstanr",
+         chains = 2,
+         cores = 2,
+         threads = threading(2),
+         seed = seed,
+         control = list(
+           adapt_delta = 0.9,
+           max_treedepth = 20
+         ),
+         stan_model_args = list(stanc_options = list("O1")) )
+  
+  estimate <- m1a %>%  ## FROM HERE!
+    as_draws_df() %>% 
+    mutate(Effect = `b_DiagnosisTD:Visit` - `b_DiagnosisASD:Visit`) %>%
+    summarize(
+      EffectMean = mean(Effect),
+      EffectSE = sd(Effect),
+      EffectLowCI = quantile(Effect, 0.025),
+      EffectHighCI = quantile(Effect, 0.975),
+      EffectWidth = EffectHighCI - EffectLowCI,
+      ER = sum(Effect > 0) / sum(Effect <= 0),
+      Cred = sum(Effect > 0) / n()
+    ) 
+    return(estimate)
+}
+
+## Simulate, fit the model, extract the relevant estimates, take the time
+t5 <- Sys.time()
+s3 <-
+  tibble(seed = 1000:1009) %>% # Actually best to stick to 1000-1009 (seeds 3 and 1010 take forever to fit)
+  mutate(b1 = map(seed, sim_d_and_fit, n, visits)) %>% 
+  unnest(b1)
+t6 <- Sys.time()
+t6 - t5
+
+## Plot results
+
+s3 %>% 
+  ggplot(aes(x = seed, y = EffectMean, ymin = EffectLowCI, ymax = EffectHighCI)) +
+  geom_hline(yintercept = c(0, .5), color = "white") +
+  geom_pointrange(fatten = 1/2) +
+  labs(x = "seed (i.e., simulation index)",
+       y = expression(beta[1])) +
+  theme_bw()
+
+s3 %>% 
+  mutate(check = ifelse(EffectLowCI > 0, 1, 0)) %>% 
+  summarise(power = mean(check))
+
+s3 %>% 
+  mutate(check = ifelse(EffectWidth < .1, 1, 0)) %>% 
+  summarise(`width power` = mean(check))
+
+s3 %>%
+  ggplot(aes(x = reorder(seed, EffectLowCI), y = EffectMean, ymin = EffectLowCI, ymax = EffectHighCI)) +
+  geom_hline(yintercept = c(0, .5), color = "white") +
+  geom_pointrange(fatten = 1/2) +
+  scale_x_discrete("reordered by the lower level of the 95% intervals", breaks = NULL) +
+  ylab(expression(beta[1])) +
+  #coord_cartesian(ylim = c(-.5, 1.3)) +
+  theme_bw()
+
+
+## THEN SETUP A LOOP INCREASING N AND ASSESS POWER
+d_sim <- NULL
+for (n in c(10, 15, 20, 25, 30, 50, 100, 300, 1000)) { #
+  temp <-  tibble(seed = 1000:1009) %>% 
+    mutate(b1 = map(seed, sim_d_and_fit, n)) %>% 
+    unnest(b1) %>% mutate(sample = n)
+  if (exists("d_sim")) {d_sim <- rbind(d_sim, temp)} else {d_sim <- temp}
+  write_csv(d_sim, "~/Dropbox/Teaching/2022 - Methods 3/Assignments22/A1_LanguageDevelopment/data/sim_data.csv")
+}
+
+# write_csv(s3, "~/Dropbox/Teaching/2022 - Methods 3/Assignments22/A1_LanguageDevelopment/data/sim_data_50.csv")
+# write_csv(d_sim, "~/Dropbox/Teaching/2022 - Methods 3/Assignments22/A1_LanguageDevelopment/data/sim_data_30_50_100.csv")
+write_csv(d_sim, "~/Dropbox/Teaching/2022 - Methods 3/Assignments22/A1_LanguageDevelopment/data/sim_data_10_15_20_25_300_1000.csv")
+
+d_sim  %>%
+  ggplot(aes(x = seed, y = EffectMean, ymin = EffectLowCI, ymax = EffectHighCI)) + # x = reorder(seed, EffectLowCI)
+  geom_hline(yintercept = .2, color = "red") +
+  geom_pointrange(fatten = 1/2) +
+  scale_x_discrete("reordered by the lower level of the 95% intervals", breaks = NULL) +
+  ylab("Estimate") +
+  facet_wrap(sample ~ .) +
+  #coord_cartesian(ylim = c(-.5, 1.3)) +
+  theme_bw()
+
+```
+
+
+
+# Part 2 - Strong in the Bayesian ken, you are now ready to analyse the actual data
+
+- Describe your sample (n, age, gender, clinical and cognitive features of the two groups) and critically assess whether the groups (ASD and TD) are balanced. Briefly discuss whether the data is enough given the simulations in part 1.
+- Describe linguistic development (in terms of MLU over time) in TD and ASD children (as a function of group). Discuss the difference (if any) between the two groups.
+- Describe individual differences in linguistic development: do all kids follow the same path? Are all kids reflected by the general trend for their group?
+
+- Include additional predictors in your model of language development (N.B. not other indexes of child language: types and tokens, that'd be cheating). Identify the best model, by conceptual reasoning, model comparison or a mix. Report the model you choose (and name its competitors, if any) and discuss why it's the best model.
+
+```{r}
+# 
+setwd("~/Dropbox/Teaching/2022 - Methods 3/")
+d <- read_csv("Assignments22/A1_LanguageDevelopment/data/data_clean.csv") %>% 
+  subset(!is.na(MOT_MLU))
+
+names(d)
+d <- d %>%
+    mutate(Gender = as.factor(Gender),
+           Ethnicity = as.factor(Ethnicity),
+           Diagnosis = factor(Diagnosis, levels = c("TD", "ASD")),
+           Child.ID = as.factor(Child.ID))
+
+table(d$Child.ID)
+Participant_Data = d %>%
+    distinct(Child.ID, Ethnicity, Diagnosis, Gender)
+count(Participant_Data, Diagnosis)
+count(Participant_Data, Ethnicity)
+count(Participant_Data, Gender)
+
+# age at visit 1
+d %>%
+    filter(Visit == 1) %>%
+    count(cut_interval(Age, 10))
+
+### PLOT THE DATA
+ggplot(d, aes())
+
+#MAKE MODEL
+m_real_f0 <- bf(CHI_MLU ~ 1 + Visit + (1 + Visit | Child.ID))
+m_real_f1 <- bf(CHI_MLU ~ 0 + Diagnosis + Diagnosis:Visit + (1 + Visit | gr(Child.ID, by = Diagnosis)))
+m_real_f2 <- bf(CHI_MLU ~ 0 + Diagnosis + Diagnosis:Visit + (1 + Visit | gr(Child.ID, by = Diagnosis)),
+                sigma ~ 0 + Diagnosis)
+
+m_real_p0 <- c(
+  prior(normal(1, 1), class = Intercept),
+  prior(normal(0, .5), class = b),
+  prior(normal(0, 1), class = sd),
+  prior(normal(0, 1), class = sigma),
+  prior(lkj(3), class = cor)
+)
+
+m_real_p1 <- c(
+  prior(normal(0, .5), class = b),
+  prior(normal(1, 1), class = b, coef = DiagnosisASD),
+  prior(normal(1, 1), class = b, coef = DiagnosisTD),
+  prior(normal(0, 1), class = sd),
+  prior(normal(0, 1), class = sigma),
+  prior(lkj(3), class = cor)
+)
+
+m_real_p2 <- c(
+  prior(normal(0, .5), class = b),
+  prior(normal(1, 1), class = b, coef = DiagnosisASD),
+  prior(normal(1, 1), class = b, coef = DiagnosisTD),
+  prior(normal(0, 1), class = sd),
+  prior(normal(0, 1), class = b, dpar = sigma),
+  prior(lkj(3), class = cor)
+)
+
+
+m0_real_prior <- brm(
+  m_real_f0,
+  data = d,
+  family = gaussian,
+  backend = "cmdstanr",
+  prior = m_real_p0,
+  sample_prior = "only",
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  seed = seed,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1")) )
+
+m1_real_prior <- brm(
+  m_real_f1,
+  data = d,
+  backend = "cmdstanr",
+  family = gaussian,
+  prior = m_real_p1,
+  sample_prior = "only",
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  seed = seed,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1")) )
+
+m2_real_prior <- brm(
+  m_real_f2,
+  data = d,
+  family = gaussian,
+  backend = "cmdstanr",
+  prior = m_real_p2,
+  sample_prior = "only",
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  seed = seed,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1")) )
+
+m0_real <- brm(
+  m_real_f0,
+  data = d,
+  family = gaussian,
+  backend = "cmdstanr",
+  prior = m_real_p0,
+  sample_prior = T,
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  seed = seed,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1")) )
+
+m1_real <- brm(
+  m_real_f1,
+  data = d,
+  family = gaussian,
+  backend = "cmdstanr",
+  prior = m_real_p1,
+  sample_prior = T,
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  seed = seed,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1")) )
+
+m2_real <- brm(
+  m_real_f2,
+  data = d,
+  family = gaussian,
+  backend = "cmdstanr",
+  prior = m_real_p2,
+  sample_prior = T,
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  seed = seed,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1")) )
+
+prior_p0 <- pp_check(m0_real_prior, ndraws = 30)
+prior_p1 <- pp_check(m1_real_prior, ndraws = 30)
+prior_p2 <- pp_check(m2_real_prior, ndraws = 30)
+posterior_p0 <- pp_check(m0_real, ndraws = 30)
+posterior_p1 <- pp_check(m1_real, ndraws = 30)
+posterior_p2 <- pp_check(m2_real, ndraws = 30)
+
+(prior_p0 + prior_p1 + prior_p2) / (posterior_p0 + posterior_p1 + posterior_p2)
+
+# Extracting posterior samples
+post0 <- as_draws_df(m0_real)
+post1 <- as_draws_df(m1_real)
+post2 <- as_draws_df(m2_real)
+
+ggplot(post0) +
+  geom_histogram(aes(Intercept), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_Intercept), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post0) +
+  geom_histogram(aes(b_Visit), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_b), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post0) +
+  geom_histogram(aes(sd_Child.ID__Intercept), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(sd_Child.ID__Visit), alpha = 0.5, fill = "blue") +
+  geom_histogram(aes(prior_sd_Child.ID), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post0) +
+  geom_histogram(aes(sigma), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_sigma), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(b_DiagnosisASD), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(b_DiagnosisTD), alpha = 0.5, fill = "blue") +
+  geom_histogram(aes(prior_b_DiagnosisASD), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+
+post1 %>% mutate(
+  Effect = b_DiagnosisTD - b_DiagnosisASD,
+  PriorEffect = prior_b_DiagnosisTD - prior_b_DiagnosisASD
+) %>% ggplot() +
+  geom_histogram(aes(Effect), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(PriorEffect), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(`b_DiagnosisASD:Visit`), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(`b_DiagnosisTD:Visit`), alpha = 0.5, fill = "blue") +
+  geom_histogram(aes(`prior_b_DiagnosisASD:Visit`), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(`cor_Child.ID__Intercept:DiagnosisASD__Visit:DiagnosisASD`), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(`cor_Child.ID__Intercept:DiagnosisTD__Visit:DiagnosisTD`), alpha = 0.5, fill = "blue") +
+  geom_histogram(aes(prior_cor_Child.ID__1), alpha = 0.5, fill = "red")
+
+
+ggplot(post1) +
+  geom_histogram(aes(`sd_Child.ID__Intercept:DiagnosisASD`), alpha = 0.5, fill = "darkgreen") +
+  geom_histogram(aes(`sd_Child.ID__Intercept:DiagnosisTD`), alpha = 0.5, fill = "lightgreen") +
+  geom_histogram(aes(`sd_Child.ID__Visit:DiagnosisASD`), alpha = 0.5, fill = "darkblue") +
+  geom_histogram(aes(`sd_Child.ID__Visit:DiagnosisTD`), alpha = 0.5, fill = "lightblue") +
+  geom_histogram(aes(prior_sd_Child.ID), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+ggplot(post1) +
+  geom_histogram(aes(sigma), alpha = 0.5, fill = "green") +
+  geom_histogram(aes(prior_sigma), alpha = 0.5, fill = "red") +
+  theme_bw()
+
+## Same for m2 (still missing)
+
+# MOdel comparison
+m0_real <- add_criterion(m0_real, criterion = "loo", moment_match = T)
+m1_real <- add_criterion(m1_real, criterion = "loo", moment_match = T)
+m2_real <- add_criterion(m2_real, criterion = "loo", moment_match = T)
+
+loo_compare(m0_real, m1_real, m2_real)
+loo_model_weights(m0_real, m1_real, m2_real)
+
+# Hypothesis testing
+hypothesis(m2_real, "DiagnosisTD:Visit - DiagnosisASD:Visit > 0")
+hypothesis(m2_real, "Visit > 0", scope = "coef", group = "Child.ID")
+
+# Plot individual level effects
+
+# Then we build a model with a bunch of additional predictors (e.g. following on the hearing me paper)
+
+```
+
+
+Part 3 - From explanation to prediction
+
+N.B. There are several datasets for this exercise, so pay attention to which one you are using!
+
+1. The (training) dataset from last time (the awesome one you produced :-) ).
+2. The (test) datasets on which you can test the models from last time:
+* Demographic and clinical data: https://www.dropbox.com/s/ra99bdvm6fzay3g/demo_test.csv?dl=1
+* Utterance Length data: https://www.dropbox.com/s/uxtqqzl18nwxowq/LU_test.csv?dl=1
+* Word data: https://www.dropbox.com/s/1ces4hv8kh0stov/token_test.csv?dl=1
+
+Relying on the model(s) you trained in part 2 of the exercise, create predictions for the test set and assess how well they do compared to the actual data.
+
+- Discuss the differences in performance of your model in training and testing data. Is the model any good?
+- Let's assume you are a speech therapy clinic. You want to assess whether the kids in your test sample will have a typical (like a TD) development, or they will have a worse one, in which case they should get speech therapy support. What do your predictions tell you about that? Which kids would you provide therapy for? Is the model any good?
+
+```{r}
+
+# Create Function to make sure all is in place
+
+CleanUpData <- function(Demo,LU,Word){
+  
+  Speech <- merge(LU, Word) %>%
+    rename(
+      Child.ID = SUBJ, 
+      Visit = VISIT) %>%
+    mutate(
+      Visit = str_extract(Visit, "\\d"),
+      Child.ID = gsub("\\.","", Child.ID)) %>%
+    select(
+      c("Child.ID", "Visit", "MOT_MLU", "CHI_MLU", "types_MOT", "types_CHI", "tokens_MOT", "tokens_CHI")
+    )
+  
+  Demo <- Demo %>% mutate(
+    Child.ID = gsub("\\.","", Child.ID)) %>% select(
+      c("Child.ID", "Visit", "Ethnicity", "Diagnosis", "Gender", "Age", "ADOS", "MullenRaw", "ExpressiveLangRaw","Socialization")
+    )
+  
+  d <- merge(Demo, Speech, all = T)
+  
+  d1 <- d %>% 
+     subset(Visit == "1") %>% 
+     select(Child.ID, ADOS, ExpressiveLangRaw, MullenRaw, Socialization) %>%
+     rename(Ados1 = ADOS, verbalIQ1 = ExpressiveLangRaw, nonVerbalIQ1 = MullenRaw, Socialization1 = Socialization) 
+  
+  d <- merge(d, d1, all = T) %>%
+    mutate(
+      Child.ID = as.numeric(as.factor(as.character(Child.ID))),
+      Visit = as.numeric(as.character(Visit)),
+      Visit2 = Visit^2,
+      Gender = recode(Gender, 
+                      "1" = "M",
+                      "2" = "F"),
+      Diagnosis = recode(Diagnosis,
+                         "A"  = "ASD",
+                         "B"  = "TD")
+    )
+
+  return(d)
+}
+
+# Training Data
+Demo <- read_csv('Assignments22/0_Preprocessing/data/demo_train.csv')
+LU <- read_csv('Assignments22/0_Preprocessing/data/LU_train.csv')
+Word <- read_csv('Assignments22/0_Preprocessing/data/token_train.csv')
+TrainData <- CleanUpData(Demo,LU,Word)
+
+# Test Data
+# Test data
+Demo <- read_csv('Assignments22/A1_LanguageDevelopment/data/demo_test.csv')
+LU <- read_csv('Assignments22/A1_LanguageDevelopment/data/LU_test.csv')
+Word <- read_csv('Assignments22/A1_LanguageDevelopment/data/token_test.csv')
+TestData <- CleanUpData(Demo,LU,Word)
+
+TestData$Child.ID = as.factor(as.numeric(TestData$Child.ID) + 300)
+
+
+# Remove missing data to ease merging with predictions
+TrainData  <- TrainData[complete.cases(TrainData[,c("CHI_MLU","Visit","Diagnosis", "Child.ID")]),]
+TestData <- TestData[complete.cases(TestData[,c("CHI_MLU","Visit","Diagnosis","Child.ID")]),]
+
+# NB. Here we should be using a model that'd have some more interesting predictors (to make sure we have something to predict)
+# N.B: Alternatively we could retrain the model to include visit 1 for all the test kids (and thus have the random effects)
+
+m2_train <- brm(
+  m_real_f2,
+  data = TrainData,
+  backend = "cmdstanr",
+  prior = m_real_p2,
+  sample_prior = T,
+  chains = 2,
+  cores = 2,
+  threads = threading(2),
+  seed = seed,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1")) )
+
+TrainPredictions <- predict(m2_train)
+
+TrainData <- TrainData %>% mutate(
+  Preds = TrainPredictions[, 1],
+  Preds_se = TrainPredictions[, 2],
+  Preds_lowCI = TrainPredictions[, 3],
+  Preds_highCI = TrainPredictions[, 4],
+)
+
+TestPredictions <- predict(m2_train, newdata = TestData, allow_new_levels = T)
+
+TestData <- TestData %>% mutate(
+  Preds = TestPredictions[, 1],
+  Preds_se = TestPredictions[, 2],
+  Preds_lowCI = TestPredictions[, 3],
+  Preds_highCI = TestPredictions[, 4],
+)
+
+TrainData$Status <- "Train"
+TestData$Status <- "Test"
+janitor::compare_df_cols(TrainData, TestData)
+dd <- rbind(TrainData, TestData)
+
+#- calculate performance of the model on the training data: root mean square error is a good measure. (Tip: google the function rmse())
+
+mean(abs(TrainData$CHI_MLU - TrainData$Preds)^2)
+mean(abs(TestData$CHI_MLU - TestData$Preds)^2)
+
+ggplot(dd, aes(CHI_MLU, Preds, color = Status)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+ggplot(dd, aes(Preds_se, fill = Status)) +
+  geom_histogram()
+
+# Still missing: plot the predictions with standard errors
+# Still missing: plot TD development, new kids predictions
+
+## Old example for the last point
+bernie = filter(TestData, Child.ID == 2)
+bernie_MLU = predict(MLUmodel, newdata = bernie, allow.new.levels = TRUE)
+
+# how does the child fare in ChildMLU compared to the average TD child at each visit? 
+TrainData %>%
+    filter(Diagnosis == "TD") %>%
+    group_by(Visit) %>%
+    summarise(avg_MLU = mean(CHI_MLU)) %>%
+    mutate(bernie_MLU,
+           compare_bernie = bernie_MLU - avg_MLU)
+
+# how does the child fare compared to the model predictions at Visit 6?
+bernie_6 = filter(bernie, Visit == 6)
+bernie_pred_6 = predict(MLUmodel, newdata = bernie_6, allow.new.levels = TRUE)
+print(c("Data" = bernie_6$CHI_MLU, "Prediction" = bernie_pred_6, "Error" = bernie_6$CHI_MLU - bernie_pred_6))
+```
+

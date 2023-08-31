@@ -1,0 +1,338 @@
+---
+title: "Assignment 3 - Part 2 - Diagnosing Schizophrenia from Voice"
+author: "Riccardo Fusaroli"
+date: "October 17, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment 3 - Part 2 - Diagnosing schizophrenia from voice
+
+In the previous part of the assignment you generated a bunch of "features", that is, of quantitative descriptors of voice in schizophrenia. We then looked at whether we could replicate results from the previous literature.
+We now want to know whether we can automatically diagnose schizophrenia from voice only, that is, relying on the set of features you produced last time, we will try to produce an automated classifier.
+Again, remember that the dataset containst 7 studies and 3 languages. Feel free to only include Danish (Study 1-4) if you feel that adds too much complexity.
+
+Issues to be discussed your report:
+- Should you run the analysis on both languages at the same time? 
+- Choose your best acoustic feature from part 1. How well can you diagnose schizophrenia just using it?
+- Identify the best combination of acoustic features to diagnose schizophrenia using logistic regression.
+- Discuss the "classification" process: which methods are you using? Which confounds should you be aware of? What are the strength and limitation of the analysis?
+- Bonus question: Logistic regression is only one of many classification algorithms. Try using others and compare performance. Some examples: Discriminant Function, Random Forest, Support Vector Machine, etc. The package caret provides them. Tidymodels provides 
+
+## Learning objectives
+- Learn the basics of classification in a machine learning framework
+- Design, fit and report logistic regressions
+- Apply feature selection techniques
+
+### Let's start
+
+We first want to build a logistic regression to see whether you can diagnose schizophrenia from your best acoustic feature. Let's use the full dataset and calculate the different performance measures (accuracy, sensitivity, specificity, PPV, NPV, ROC curve). You need to think carefully as to how we should (or not) use study and subject ID.
+
+Then cross-validate the logistic regression and re-calculate performance on the testing folds. N.B. The cross-validation functions you already have should be tweaked: you need to calculate these new performance measures.
+
+N.B. the predict() function generates log odds (the full scale between minus and plus infinity). Log odds > 0 indicates a choice of 1, below a choice of 0.
+N.N.B. you need to decide whether calculate performance on each single test fold or save all the prediction for test folds in one datase, so to calculate overall performance.
+N.N.N.B. Now you have two levels of structure: subject and study. Should this impact your cross-validation?
+N.N.N.N.B. The groupdata2 and cvms package created by Ludvig are the easiest solution. A more advanced solution could rely on the tidymodels set of packages (warning: Time-consuming to learn as the documentation is sparse, but totally worth it)
+
+## Here we solve it with cvms
+
+```{r, cvms solution}
+pacman::p_load(tidyverse,caret,groupdata2,cvms)
+
+d <- read_csv("Assignment3/data/data_merge.csv") %>% subset(!is.na(Gender) & !is.na(SyllableN) & !is.na(mean))
+d$Diagnosis <- as.factor(d$Diagnosis)
+d$Study <- as.factor(d$Study)
+m <- glmer(Diagnosis ~ 0 + SpeechRate + SpeechRate:Study + (1 |ID), data = d, family = binomial,
+    control = glmerControl(optimizer = "nloptwrap", calc.derivs = FALSE))
+
+m <- glm(Diagnosis ~ 1 + SpeechRate, data = d, family = binomial)
+
+summary(m)
+
+d$Pred <- predict(m)
+d$DiagnosisPred <- as.factor(ifelse(d$Pred<0, "Control","Schizophrenia"))
+caret::confusionMatrix(d$DiagnosisPred,d$Diagnosis)
+
+ggplot(d,aes(Diagnosis,SpeechRate)) + geom_point()
+
+d <- fold(d, k = 5,
+             cat_col = 'Diagnosis',
+             id_col = 'ID') %>% 
+  arrange(.folds)
+
+models <- c(
+  "Diagnosis ~ SpeechRate",
+  "Diagnosis ~ SpeechRate + iqr",
+  "Diagnosis ~ SpeechRate * iqr"
+)
+
+CV2 <- cross_validate(d, models, 
+                     fold_cols = '.folds', 
+                     family='binomial')
+
+CV2
+CV2$`Confusion Matrix`[[1]] %>% kable()
+
+
+```
+
+## Here we solve it with tidy models
+
+# First training and test, then on cross-validated
+
+To report:
+- rsample should enable stratifed partitioning/folds not only by one class, but also by other things, eg. diagnosis and id. what about balancing by other features?
+
+```{r}
+d <- read_csv("Assignment3/data/data_merge.csv") %>% 
+  subset(!is.na(Gender) & !is.na(SyllableN) & !is.na(mean)) %>%
+  select(-c(SyllableDuration, PauseDuration))
+
+
+# Load tidymodels
+pacman::p_load(tidymodels, caret, mlbench, parallel, doParallel, GGally)
+
+# Prep the dataset
+df <- d %>% 
+  as_tibble() %>%
+  select(
+    ID,
+    Study, 
+    Diagnosis, 
+    SyllableN, 
+    PauseN, 
+    Duration, 
+    SpokenDuration, 
+    SpeechRate, 
+    ArticulationRate, 
+    mean, 
+    sd, 
+    min, 
+    max,
+    median,
+    iqr,
+    mad,
+    coefvar) %>% 
+  mutate(
+    ID = as.factor(ID),
+    Study = as.factor(Study),
+    Diagnosis = as.factor(Diagnosis)
+)
+
+## We then partition
+df_par <- partition(df, p = 0.2, cat_col = "Diagnosis", id_col = "ID", list_out = F)
+df_train <- subset(df_par,.partitions==1) 
+df_test <- subset(df_par,.partitions==2) %>% select(-c(Study,ID,.partitions))
+df_test$.partitions<-NULL
+
+
+### Let's define a recipe that preprocesses the data
+
+rec <- df_train %>% recipe(Diagnosis ~ . ) %>% # defines the outcome
+  step_scale( all_numeric() ) %>% # scales numeric predictors
+  step_center( all_numeric() ) %>% # center numeric predictors
+  #check_missing(everything()) %>%
+  prep(training = df_train, retain = TRUE)
+
+# Apply to train data
+df_train_n <- juice(rec)  %>% select(-c(Study,ID,.partitions))
+# Apply to test data
+df_test_n <- bake(rec, new_data = df_test, all_predictors()) %>% select(-c(Study,ID,.partitions))
+
+
+## Now I can apply a bunch of models to the train data if I want
+### NB SET REASONABLE PARAMETERS??
+
+log_fit <-
+  logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm") %>%
+  fit(Diagnosis ~ . , data = df_train_n)
+
+logpen_fit <-
+  logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glmnet") %>%
+  fit(Diagnosis ~ . , data = df_train_n)
+
+svm_fit <-
+  svm_rbf() %>%
+  set_mode("classification") %>% 
+  set_engine("kernlab") %>%
+  fit(Diagnosis ~ . , data = df_train_n)
+
+rf_fit <-
+  rand_forest() %>%
+  set_mode("classification") %>% 
+  set_engine("randomForest") %>%
+  fit(Diagnosis ~ . , data = df_train_n)
+
+dt_fit  <-
+  decision_tree() %>%
+  set_mode("classification") %>% 
+  set_engine("rpart") %>%
+  fit(Diagnosis ~ . , data = df_train_n)
+
+bt_fit  <-
+  boost_tree() %>%
+  set_mode("classification") %>% 
+  set_engine("xgboost") %>%
+  fit(Diagnosis ~ . , data = df_train_n)
+
+## Now we need to test them on the test data
+
+test_results <- 
+  df_test %>%
+  as_tibble() %>%
+  mutate(
+    log_class = predict(log_fit, new_data = df_test_n) %>% 
+      pull(.pred_class),
+    log_prob  = predict(log_fit, new_data = df_test_n, type = "prob") %>% 
+      pull(.pred_Schizophrenia),
+    svm_class = predict(svm_fit, new_data = df_test_n) %>% 
+      pull(.pred_class),
+    svm_prob  = predict(svm_fit, new_data = df_test_n, type = "prob") %>% 
+      pull(.pred_Schizophrenia),
+    rf_class = predict(rf_fit, new_data = df_test_n) %>% 
+      pull(.pred_class),
+    rf_prob  = predict(rf_fit, new_data = df_test_n, type = "prob") %>% 
+      pull(.pred_Schizophrenia),
+    dt_class = predict(dt_fit, new_data = df_test_n) %>% 
+      pull(.pred_class),
+    dt_prob  = predict(dt_fit, new_data = df_test_n, type = "prob") %>% 
+      pull(.pred_Schizophrenia),
+    bt_class = predict(bt_fit, new_data = df_test_n) %>% 
+      pull(.pred_class),
+    bt_prob  = predict(bt_fit, new_data = df_test_n, type = "prob") %>% 
+      pull(.pred_Schizophrenia)
+  )
+
+metrics(test_results, truth = Diagnosis, estimate = log_class) %>% 
+  knitr::kable()
+metrics(test_results, truth = Diagnosis, estimate = svm_class) %>% 
+  knitr::kable()
+metrics(test_results, truth = Diagnosis, estimate = rf_class) %>% 
+  knitr::kable()
+metrics(test_results, truth = Diagnosis, estimate = dt_class) %>% 
+  knitr::kable()
+metrics(test_results, truth = Diagnosis, estimate = bt_class) %>% 
+  knitr::kable()
+
+## Alternative procedure using cross-validation
+
+# Let's cross-validate the training set
+cross_val_tbl = rsample::group_vfold_cv(df_train, group = c(Diagnosis,ID), v = 10)
+rsample::pretty.group_vfold_cv(cross_val_tbl)
+cross_val_tbl
+
+cross_val_tbl_caret = rsample::rsample2caret(cross_val_tbl)
+
+# How do we fit the model to the cross-validated folds?
+
+rf_mod <- 
+  rand_forest(
+    mode = "classification",
+    trees = 200
+  )
+
+folded <- 
+  cross_val_tbl %>% 
+  mutate(
+    recipes = splits %>%
+      # Prepper is a wrapper for `prep()` which handles `split` objects
+      map(prepper, recipe = rec), 
+    test_data = splits %>% map(analysis),
+    rf_fits = 
+      map2(
+        recipes,
+        test_data, 
+        ~ fit(
+          rf_mod, 
+          formula(.x), 
+          data = bake(object = .x, new_data = .y),
+          engine = "randomForest"
+        )
+      )
+  )
+
+predict_rf <- function(split, rec, model) {
+  test <- bake(rec, assessment(split))
+  tibble(
+    actual = df_test$Diagnosis,
+    predicted = predict(dt_fit, new_data = df_test_n) %>% pull(.pred_class)
+  )
+}
+
+
+predictions <- 
+  folded %>% 
+  mutate(
+    pred = 
+      list(
+        splits,
+        recipes,
+        rf_fits
+      ) %>% 
+      pmap(predict_rf)
+  )
+
+eval <- 
+  predictions %>% 
+  mutate(
+    metrics = pred %>% map(~ metrics(., truth = actual, estimate = predicted))
+  ) %>% 
+  select(metrics) %>% 
+  unnest(metrics)
+
+eval %>% knitr::kable()
+
+predictions %>%
+  group_by(id) %>%
+  roc_curve(obs, VF:L) %>%
+  autoplot()
+
+
+# And do a nested cross-validation
+cross_val_tbl2 <- nested_cv(df, outside = group_vfold_cv(group = ID, v = 5), inside = group_vfold_cv(group = ID, v = 5))
+cross_val_tbl2
+
+df_train <- df_train %>% select(-c(Study,ID,.partitions))
+df_train$.partitions<-NULL
+
+
+# and we also bootstrap the training set
+validation_data <- mc_cv(df_train, prop = 0.9, times = 30)
+validation_data 
+
+
+## Fitting models to nested cross-validated and bootstrapped datasets as an exercise to the reader (AKA not solved yet)
+```
+
+
+### Question 2 - Which single acoustic predictor is the best predictor of diagnosis?
+
+### Question 3 - Which combination of acoustic predictors is best for diagnosing schizophrenia?
+
+Now it's time to go wild! Use all (voice-related) variables and interactions you can think of. Compare models and select the best performing model you can find.
+
+Remember:
+- Out-of-sample error crucial to build the best model!
+- After choosing the model, send Malte and Riccardo the code of your model
+
+### Question 4: Properly report the results
+
+METHODS SECTION: how did you analyse the data? That is, how did you extract the data, designed the models and compared their performance?
+
+RESULTS SECTION: can you diagnose schizophrenia based on voice? which features are used? Comment on the difference between the different performance measures.
+
+### Bonus question 5
+
+You have some additional bonus data involving speech rate, pauses, etc. Include them in your analysis. Do they improve classification?
+
+### Bonus question 6
+
+Logistic regression is only one of many classification algorithms. Try using others and compare performance. Some examples: Discriminant Function, Random Forest, Support Vector Machine, etc. The package caret provides them.

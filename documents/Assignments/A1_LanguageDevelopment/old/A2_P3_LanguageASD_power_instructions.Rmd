@@ -1,0 +1,65 @@
+---
+title: "Assignment 1 - Language Development in ASD - Power and simulations"
+author: "[YOUR NAME]"
+date: "[DATE]"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Welcome to the third exciting part of the Language Development in ASD exercise
+
+In this part of the assignment, we try to figure out how a new study should be planned (i.e. how many participants?) in order to have enough power to replicate the findings (ensuring our sample size is adequate, our alpha at 0.05 and our beta at 0.8):
+1- if we trust the estimates of the current study. Report the power analysis and comment on what you can (or cannot) use its estimates for.
+2- if we are skeptical of the current study. Report the power analysis and comment on what you can (or cannot) use its estimates for.
+3- if we only have access to 30 participants. Identify the power for each relevant effect and discuss whether it's worth to run the study and why
+The list above is also what you should discuss in your code-less report.
+
+
+## Learning objectives
+
+- Learn how to calculate statistical power
+- Critically appraise how to apply frequentist statistical power
+
+### Exercise 1
+
+How much power does your study have (if your model estimates are quite right)?
+- Load your dataset (both training and testing), fit your favorite model, assess power for your effects of interest (probably your interactions).
+- Report the power analysis and comment on what you can (or cannot) use its estimates for.
+- Test how many participants you would have to have to replicate the findings (assuming the findings are correct)
+
+N.B. Remember that main effects are tricky once you have interactions in the model (same for 2-way interactions w 3-way interactions in the model). If you want to test the power of main effects, run a model excluding the interactions.
+N.B. Check this paper: https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12504
+You will be using:
+- powerSim() to calculate power
+- powerCurve() to estimate the needed number of participants
+- extend() to simulate more participants
+
+```{r}
+
+```
+
+
+### Exercise 2
+
+How would you perform a more conservative power analysis?
+- Identify and justify a minimum effect size for each of your relevant effects
+- take the model from exercise 1 and replace the effects with the minimum effect size that you'd accept.
+- assess the power curve by Child.ID, identifying an ideal number of participants to estimate each effect
+- if your power estimates do not reach an acceptable threshold simulate additional participants and repeat the previous analysis
+- Report the power analysis and comment on what you can (or cannot) use its estimates for.
+
+```{r}
+
+```
+
+
+### Exercise 3
+
+Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). Identify the power for each relevant effect and discuss whether it's worth to run the study and why
+
+```{r}
+
+```

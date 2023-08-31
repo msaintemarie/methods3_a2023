@@ -1,0 +1,804 @@
+---
+title: "Assignment 2 - Meta-analysis of pitch in schizophrenia"
+author: "Riccardo Fusaroli"
+date: "16/8/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 2: meta-analysis
+
+## Questions to be answered
+
+1. Simulate data to setup the analysis and gain insight on the structure of the problem. Simulate one dataset of 100 studies (n of participants should follow a normal distribution with mean of 20, sd of 10, but no fewer than 10 participants), with a mean effect size of 0, average deviation by study of .4 and measurement error of .8. The data you get should have one row per study, with an effect size mean and standard error. Build a proper bayesian model to analyze the simulated data. Then simulate publication bias (only some of the studies you simulate are likely to be published, which?), the effect of publication bias on your estimates (re-run the model on published studies, assess the difference), and use at least one technique to assess publication bias. remember to use at least one plot to visualize your results. BONUS question: do a power/precision analysis.
+
+2. What is the current evidence for distinctive vocal patterns in schizophrenia? 
+Use the data from Parola et al (2020) - https://www.dropbox.com/s/0l9ur0gaabr80a8/Matrix_MetaAnalysis_Diagnosis_updated290719.xlsx?dl=0 - focusing on pitch variability (PITCH_F0SD).  Describe the data available (studies, participants). Using the model from question 1 analyze the data, visualize and report the findings: population level effect size; how well studies reflect it; influential studies, publication bias. BONUS question: add the findings from https://www.medrxiv.org/content/10.1101/2022.04.03.22273354v2. BONUS question: assess the effect of task on the estimates (model comparison with baseline model)
+
+
+# Question 1
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  brms,
+  patchwork,
+  readxl
+)
+
+## First we identify parameters
+EffectMean <- 0
+LanguageSD <- 0.5
+StudySD <- 0.2
+Error <- 0.8
+
+## Then we setup the simulation
+
+### We set the number of studies
+Studies <- 100
+## We set the number of languages
+Languages <- 2
+LanguageEffect <- rnorm(2, EffectMean, LanguageSD)
+
+### For each study we define a certain positive number of individuals and the study level effect size
+d <- tibble(
+  Study = seq(Studies),
+  Language = rbinom(Studies, 1, .7) + 1,
+  Participants = round(msm::rtnorm(Studies, 20, 10, lower = 10), 0),
+  LanguageEffect = NA,
+  StudyEffect = NA,
+  EffectMu = NA,
+  EffectSigma = NA,
+  Published = NA,
+  PublishedPos = NA
+) 
+
+# For each study we need to sample the participants and extract mean and se of the effect, and include a publication bias
+for (i in seq(Studies)) {
+  d$LanguageEffect[i] <- LanguageEffect[d$Language[i]]
+  d$StudyEffect[i] <- rnorm(1, LanguageEffect[d$Language[i]], StudySD)
+  sampling <- rnorm(d$Participants[i], d$StudyEffect[i], Error)
+  d$EffectMu[i] <- mean(sampling)
+  d$EffectSigma[i] <- sd(sampling)/sqrt(d$Participants[i])
+  d$Published[i] <- ifelse(
+    abs(d$EffectMu[i]) - (2*d$EffectSigma[i]) > 0, 
+    rbinom(1, 1, .9), rbinom(1, 1, .09))
+  d$PublishedPos[i] <- ifelse(
+    abs(d$EffectMu[i]) - (2*d$EffectSigma[i]) > 0 & d$EffectMu[i] > 0, 
+    rbinom(1, 1, .9), rbinom(1, 1, .09))
+}
+
+# Adding 3 outrageous outliers
+index <- Studies + 1
+d[index:(index + 2),] <- NA
+d$Study[index:(index + 2)] <- c(index:(index + 2))
+d$Language[index:(index + 2)] <- rbinom(3, 1, .7) + 1
+d$Participants[index:(index + 2)] <- c(25, 30, 27)
+d$StudyEffect[index:(index + 2)] <- EffectMean
+d$EffectMu[index:(index + 2)] <- c(2.5, 3, 2.7)
+d$EffectSigma[index:(index + 2)] <- 1
+d$Published[index:(index + 2)] <- 1
+d$PublishedPos[index:(index + 2)] <- 1
+
+d <- d %>% mutate(
+  Language = ifelse(Language == 1, "Danish", "American")
+)
+nrow(d)
+summary(as.factor(d$Language))
+mean(d$EffectMu)
+sd(d$EffectMu)
+mean(d$EffectMu[d$EffectMu < 2])
+sd(d$EffectMu[d$EffectMu < 2])
+
+nrow(d[d$Published == 1,])
+summary(as.factor(d$Language[d$Published == 1]))
+mean(d$EffectMu[d$Published == 1])
+sd(d$EffectMu[d$Published == 1])
+mean(d$EffectMu[d$Published == 1 & d$EffectMu < 2])
+sd(d$EffectMu[d$Published == 1 & d$EffectMu < 2])
+
+nrow(d[d$PublishedPos == 1,])
+summary(as.factor(d$Language[d$PublishedPos == 1]))
+mean(d$EffectMu[d$PublishedPos == 1])
+sd(d$EffectMu[d$PublishedPos == 1])
+mean(d$EffectMu[d$PublishedPos == 1 & d$EffectMu < 2])
+sd(d$EffectMu[d$PublishedPos == 1 & d$EffectMu < 2])
+
+p1 <- ggplot(d) +
+  geom_histogram(aes(EffectMu), alpha = 0.2, fill = "red", color = "red") +
+  geom_vline(xintercept = 0) +
+  #geom_histogram(data = subset(d, Published == 1), aes(EffectMu), alpha = 0.2, fill = "blue") +
+  #geom_histogram(data = subset(d, PublishedPos == 1), aes(EffectMu), alpha = 0.2, fill = "green") +
+  theme_bw()
+
+p2 <- ggplot(d) +
+  #geom_histogram(aes(EffectMu), alpha = 0.2, fill = "red", color = "red") +
+  geom_histogram(data = subset(d, Published == 1), aes(EffectMu), alpha = 0.2, fill = "blue", color = "blue") +
+  geom_vline(xintercept = 0) +
+  #geom_histogram(data = subset(d, PublishedPos == 1), aes(EffectMu), alpha = 0.2, fill = "green") +
+  theme_bw()
+p3 <- ggplot(d) +
+  #geom_histogram(aes(EffectMu), alpha = 0.2, fill = "red", color = "red") +
+  #geom_histogram(data = subset(d, Published == 1), aes(EffectMu), alpha = 0.2, fill = "blue") +
+  geom_histogram(data = subset(d, PublishedPos == 1), aes(EffectMu), alpha = 0.2, fill = "green", color = "green") +
+  geom_vline(xintercept = 0) +
+  theme_bw()
+
+p1/p2/p3
+
+ggplot(d, aes(StudyEffect, EffectMu)) +
+  geom_point() +
+  theme_bw()
+ggplot(subset(d, Published == 1), aes(StudyEffect, EffectMu)) +
+  geom_point() +
+  theme_bw()
+ggplot(subset(d, PublishedPos == 1), aes(StudyEffect, EffectMu)) +
+  geom_point() +
+  theme_bw()
+
+p1 <- ggplot(d, aes(EffectMu, EffectSigma)) +
+  geom_smooth(method = lm) +
+  geom_point() +
+  geom_vline(xintercept = c(EffectMean, mean(d$EffectMu)), color = c("black","red")) +
+  xlim(min(d$EffectMu), max(d$EffectMu)) +
+  ylim(min(d$EffectSigma), max(d$EffectSigma)) +
+  theme_bw()
+
+p2 <- ggplot(subset(d, Published == 1), aes(EffectMu, EffectSigma)) +
+  geom_smooth(method = lm) +
+  geom_vline(xintercept = c(EffectMean, mean(d$EffectMu[d$Published == 1])), color = c("black","red")) +
+  geom_point() +
+  xlim(min(d$EffectMu), max(d$EffectMu)) +
+  ylim(min(d$EffectSigma), max(d$EffectSigma)) +
+  theme_bw()
+
+p3 <- ggplot(subset(d, PublishedPos == 1), aes(EffectMu, EffectSigma)) +
+  geom_smooth(method = lm) +
+  geom_vline(xintercept = c(EffectMean, mean(d$EffectMu[d$PublishedPos == 1])), color = c("black","red")) +
+  geom_point() +
+  xlim(min(d$EffectMu), max(d$EffectMu)) +
+  ylim(min(d$EffectSigma), max(d$EffectSigma)) +
+  theme_bw()
+
+p1/p2/p3
+
+ma_f0 <- bf(EffectMu | se(EffectSigma) ~ 1 + (1|Study))
+get_prior(ma_f0, d, gaussian)
+
+ma_f1 <- bf(EffectMu | se(EffectSigma) ~ 1 + (1|Language/Study))
+get_prior(ma_f1, d, gaussian)
+
+ma_p0 <- c(
+  prior(normal(0, 0.3), class = Intercept),
+  prior(normal(0, 0.3), class = sd)
+)
+
+ma_p1 <- c(
+  prior(normal(0, 0.3), class = Intercept),
+  prior(normal(0, 0.3), class = sd)
+)
+
+ma_m0_prior <- brm(
+  ma_f0,
+  d,
+  family = gaussian,
+  prior = ma_p0,
+  sample_prior = "only",
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+ma_m1_prior <- brm(
+  ma_f1,
+  d,
+  family = gaussian,
+  prior = ma_p1,
+  sample_prior = "only",
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+p1 <- pp_check(ma_m0_prior, ndraws = 100)
+p2 <- pp_check(ma_m1_prior, ndraws = 100)
+p1 + p2
+
+ma_m0_all <- brm(
+  ma_f0,
+  d,
+  family = gaussian,
+  prior = ma_p0,
+  sample_prior = T,
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+ma_m0_pub <- update(ma_m0_all, newdata = subset(d, Published == 1))
+ma_m0_pubpos <- update(ma_m0_all, newdata = subset(d, PublishedPos == 1))
+
+ma_m1_all <- brm(
+  ma_f1,
+  d,
+  family = gaussian,
+  prior = ma_p1,
+  sample_prior = T,
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+ma_m1_pub <- update(ma_m1_all, newdata = subset(d, Published == 1))
+ma_m1_pubpos <- update(ma_m1_all, newdata = subset(d, PublishedPos == 1))
+
+p0 <- pp_check(ma_m0_all, ndraws = 100)
+p0_pub <- pp_check(ma_m0_pub, ndraws = 100)
+p0_pubpos <- pp_check(ma_m0_pubpos, ndraws = 100)
+p1 <- pp_check(ma_m1_all, ndraws = 100)
+p1_pub <- pp_check(ma_m1_pub, ndraws = 100)
+p1_pubpos <- pp_check(ma_m1_pubpos, ndraws = 100)
+
+(p0 + p0_pub + p0_pubpos) / (p1 + p1_pub + p1_pubpos)
+
+ma_m0_stud_all <- brm(
+  ma_f0,
+  d,
+  family = student,
+  prior = ma_p0,
+  sample_prior = T,
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+ma_m0_stud_pub <- update(ma_m0_stud_all, newdata = subset(d, Published == 1))
+ma_m0_stud_pubpos <- update(ma_m0_stud_all, newdata = subset(d, PublishedPos == 1))
+
+ma_m1_stud_all <- brm(
+  ma_f1,
+  d,
+  family = student,
+  prior = ma_p1,
+  sample_prior = T,
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+ma_m1_stud_pub <- update(ma_m1_stud_all, newdata = subset(d, Published == 1))
+ma_m1_stud_pubpos <- update(ma_m1_stud_all, newdata = subset(d, PublishedPos == 1))
+
+p0_stud <- pp_check(ma_m0_stud_all, ndraws = 100)
+p0_stud_pub <- pp_check(ma_m0_stud_pub, ndraws = 100)
+p0_stud_pubpos <- pp_check(ma_m0_stud_pubpos, ndraws = 100)
+p1_stud <- pp_check(ma_m1_stud_all, ndraws = 100)
+p1_stud_pub <- pp_check(ma_m1_stud_pub, ndraws = 100)
+p1_stud_pubpos <- pp_check(ma_m1_stud_pubpos, ndraws = 100)
+
+(p0_stud + p0_stud_pub + p0_stud_pubpos) / (p1_stud + p1_stud_pub + p1_stud_pubpos)
+
+d_plot <- tibble(
+  model = c(
+    "M0 - No Lang", "M0 - No Lang", "M0 - No Lang", 
+    "M1 - Lang", "M1 - Lang", "M1 - Lang"),
+  
+  pubbias = factor(
+    c("None", "Symmetric", "Asymmetric", "None", "Symmetric", "Asymmetric"),
+    levels = c("None", "Symmetric", "Asymmetric")),
+  
+  mean = c(
+    fixef(ma_m0_stud_all)[1],fixef(ma_m0_stud_pub)[1],fixef(ma_m0_stud_pubpos)[1],
+    fixef(ma_m1_stud_all)[1],fixef(ma_m1_stud_pub)[1],fixef(ma_m1_stud_pubpos)[1]),
+  
+  lowCI = c(
+    fixef(ma_m0_stud_all)[3],fixef(ma_m0_stud_pub)[3],fixef(ma_m0_stud_pubpos)[3],
+    fixef(ma_m1_stud_all)[3],fixef(ma_m1_stud_pub)[3],fixef(ma_m1_stud_pubpos)[3]),
+  highCI = c(
+    fixef(ma_m0_stud_all)[4],fixef(ma_m0_stud_pub)[4],fixef(ma_m0_stud_pubpos)[4],
+    fixef(ma_m1_stud_all)[4],fixef(ma_m1_stud_pub)[4],fixef(ma_m1_stud_pubpos)[4])
+)
+
+d_plot %>% 
+  ggplot(aes(x = model, y = mean, ymin = lowCI, ymax = highCI, group = pubbias, color = pubbias)) +
+  geom_hline(yintercept = 0) +
+  geom_pointrange(fatten = 1/2, position = position_dodge(width = 0.2)) +
+  labs(x = "model",
+       y = "estimate") +
+  theme_bw()
+
+d_plot <- tibble(
+  model = c(
+    "M0 - No Lang", "M0 - No Lang", "M0 - No Lang", 
+    "M1 - Lang", "M1 - Lang", "M1 - Lang"),
+  
+  pubbias = factor(
+    c("None", "Symmetric", "Asymmetric", "None", "Symmetric", "Asymmetric"),
+    levels = c("None", "Symmetric", "Asymmetric")),
+  
+  mean = c(
+    fixef(ma_m0_all)[1],fixef(ma_m0_pub)[1],fixef(ma_m0_pubpos)[1],
+    fixef(ma_m1_all)[1],fixef(ma_m1_pub)[1],fixef(ma_m1_pubpos)[1]),
+  
+  lowCI = c(
+    fixef(ma_m0_all)[3],fixef(ma_m0_pub)[3],fixef(ma_m0_pubpos)[3],
+    fixef(ma_m1_all)[3],fixef(ma_m1_pub)[3],fixef(ma_m1_pubpos)[3]),
+  highCI = c(
+    fixef(ma_m0_all)[4],fixef(ma_m0_pub)[4],fixef(ma_m0_pubpos)[4],
+    fixef(ma_m1_all)[4],fixef(ma_m1_pub)[4],fixef(ma_m1_pubpos)[4])
+)
+
+d_plot %>% 
+  ggplot(aes(x = model, y = mean, ymin = lowCI, ymax = highCI, group = pubbias, color = pubbias)) +
+  geom_hline(yintercept = 0) +
+  geom_pointrange(fatten = 1/2, position = position_dodge(width = 0.2)) +
+  labs(x = "model",
+       y = "estimate") +
+  theme_bw()
+
+# Forest plot
+#Make a plot called 'p', and map citation data to y-axis, effect sizes to x-axis
+#specify the min and max of the CIs, and give different shapes based on levels of tester
+p1 <- ggplot(d, aes(y = Study, x = EffectMu, 
+                   xmin = EffectMu - 1.96 * EffectSigma, xmax = EffectMu + 1.96 * EffectSigma)) +
+  #Add data points and color them black
+  geom_point(color = 'black') +
+  #Add 'special' points for the summary estimates, by making them diamond shaped
+  geom_point(data = tibble(Study = 104, EffectMu = fixef(ma_m0_all)[1], 
+                           EffectSigma = fixef(ma_m0_all)[2]), color = 'black', shape = 18, size = 4) +
+  #add the CI error bars
+  geom_errorbarh(height = .1) +
+  #Specify the limits of the x-axis and relabel it to something more meaningful
+  scale_x_continuous(limits = c(-2,2), name = 'Standardized Mean Difference (d)') +
+  #Give y-axis a meaningful label
+  ylab('Reference') +
+  #Add a vertical dashed line indicating an effect size of zero, for reference
+  geom_vline(xintercept = 0, color = 'black', linetype = 'dashed') +
+  theme_bw()
+
+p2 <- ggplot(subset(d, Published == 1), aes(y = Study, x = EffectMu, 
+                   xmin = EffectMu - 1.96 * EffectSigma, xmax = EffectMu + 1.96 * EffectSigma)) +
+  #Add data points and color them black
+  geom_point(color = 'black') +
+  #Add 'special' points for the summary estimates, by making them diamond shaped
+  geom_point(data = tibble(Study = 104, EffectMu = fixef(ma_m0_pub)[1], 
+                           EffectSigma = fixef(ma_m0_pub)[2]), color = 'black', shape = 18, size = 4) +
+  #add the CI error bars
+  geom_errorbarh(height = .1) +
+  #Specify the limits of the x-axis and relabel it to something more meaningful
+  scale_x_continuous(limits = c(-2,2), name = 'Standardized Mean Difference (d)') +
+  #Give y-axis a meaningful label
+  ylab('Reference') +
+  #Add a vertical dashed line indicating an effect size of zero, for reference
+  geom_vline(xintercept = 0, color = 'black', linetype = 'dashed') +
+  theme_bw()
+
+p3 <- ggplot(subset(d, PublishedPos == 1), aes(y = Study, x = EffectMu, 
+                   xmin = EffectMu - 1.96 * EffectSigma, xmax = EffectMu + 1.96 * EffectSigma)) +
+  #Add data points and color them black
+  geom_point(color = 'black') +
+  #Add 'special' points for the summary estimates, by making them diamond shaped
+  geom_point(data = tibble(Study = 104, EffectMu = fixef(ma_m0_pubpos)[1], 
+                           EffectSigma = fixef(ma_m0_pubpos)[2]), color = 'black', shape = 18, size = 4) +
+  #add the CI error bars
+  geom_errorbarh(height = .1) +
+  #Specify the limits of the x-axis and relabel it to something more meaningful
+  scale_x_continuous(limits = c(-2,2), name = 'Standardized Mean Difference (d)') +
+  #Give y-axis a meaningful label
+  ylab('Reference') +
+  #Add a vertical dashed line indicating an effect size of zero, for reference
+  geom_vline(xintercept = 0, color = 'black', linetype = 'dashed') +
+  theme_bw()
+
+p4 <- ggplot(d, aes(y = Study, x = EffectMu, 
+                   xmin = EffectMu - 1.96 * EffectSigma, xmax = EffectMu + 1.96 * EffectSigma)) +
+  #Add data points and color them black
+  geom_point(color = 'black') +
+  #Add 'special' points for the summary estimates, by making them diamond shaped
+  geom_point(data = tibble(Study = 104, EffectMu = fixef(ma_m1_all)[1], 
+                           EffectSigma = fixef(ma_m1_all)[2]), color = 'black', shape = 18, size = 4) +
+  #add the CI error bars
+  geom_errorbarh(height = .1) +
+  #Specify the limits of the x-axis and relabel it to something more meaningful
+  scale_x_continuous(limits = c(-2,2), name = 'Standardized Mean Difference (d)') +
+  #Give y-axis a meaningful label
+  ylab('Reference') +
+  #Add a vertical dashed line indicating an effect size of zero, for reference
+  geom_vline(xintercept = 0, color = 'black', linetype = 'dashed') +
+  theme_bw()
+
+p5 <- ggplot(subset(d, Published == 1), aes(y = Study, x = EffectMu, 
+                   xmin = EffectMu - 1.96 * EffectSigma, xmax = EffectMu + 1.96 * EffectSigma)) +
+  #Add data points and color them black
+  geom_point(color = 'black') +
+  #Add 'special' points for the summary estimates, by making them diamond shaped
+  geom_point(data = tibble(Study = 104, EffectMu = fixef(ma_m1_pub)[1], 
+                           EffectSigma = fixef(ma_m1_pub)[2]), color = 'black', shape = 18, size = 4) +
+  #add the CI error bars
+  geom_errorbarh(height = .1) +
+  #Specify the limits of the x-axis and relabel it to something more meaningful
+  scale_x_continuous(limits = c(-2,2), name = 'Standardized Mean Difference (d)') +
+  #Give y-axis a meaningful label
+  ylab('Reference') +
+  #Add a vertical dashed line indicating an effect size of zero, for reference
+  geom_vline(xintercept = 0, color = 'black', linetype = 'dashed') +
+  theme_bw()
+
+p6 <- ggplot(subset(d, PublishedPos == 1), aes(y = Study, x = EffectMu, 
+                   xmin = EffectMu - 1.96 * EffectSigma, xmax = EffectMu + 1.96 * EffectSigma)) +
+  #Add data points and color them black
+  geom_point(color = 'black') +
+  #Add 'special' points for the summary estimates, by making them diamond shaped
+  geom_point(data = tibble(Study = 104, EffectMu = fixef(ma_m1_pubpos)[1], 
+                           EffectSigma = fixef(ma_m1_pubpos)[2]), color = 'black', shape = 18, size = 4) +
+  #add the CI error bars
+  geom_errorbarh(height = .1) +
+  #Specify the limits of the x-axis and relabel it to something more meaningful
+  scale_x_continuous(limits = c(-2,2), name = 'Standardized Mean Difference (d)') +
+  #Give y-axis a meaningful label
+  ylab('Reference') +
+  #Add a vertical dashed line indicating an effect size of zero, for reference
+  geom_vline(xintercept = 0, color = 'black', linetype = 'dashed') +
+  theme_bw()
+
+(p1 + p2 + p3) / (p4 + p5 + p6)
+
+
+## Now assess publication bias
+
+estimate <- fixef(ma_m0_all)[1]
+se <- fixef(ma_m0_all)[2]
+se.seq <- seq(0, max(d$EffectSigma), 0.001)
+ll95 <- estimate - (1.96 * se.seq)
+ul95 <- estimate + (1.96 * se.seq)
+ll99 <- estimate - (3.29 * se.seq)
+ul99 <- estimate + (3.29 * se.seq)
+meanll95 <- estimate - (1.96 * se)
+meanul95 <- estimate + (1.96 * se)
+dfCI = data.frame(ll95, ul95, ll99, ul99, se.seq, estimate, meanll95, meanul95)
+
+fp <- ggplot(d, aes(EffectSigma, EffectMu)) +
+#Add your data-points to the scatterplot
+  geom_point(shape = 1) +
+#Give the x- and y- axes informative labels
+  xlab('Standard Error') + ylab('Effect Size') +
+#Now using the 'dfCI' data-frame we created, plot dotted lines corresponding
+#to the lower and upper limits of your 95% CI region,
+#And dashed lines corresponding to your 99% CI region
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ll99), linetype = 'dashed', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul99), linetype = 'dashed', data = dfCI) +
+#Now plot dotted lines corresponding to the 95% CI of your meta-analytic estimate
+   geom_segment(aes(x = min(se.seq), y = meanll95, xend = max(se.seq), yend = meanll95), linetype = 'dotted', data = dfCI) +
+  geom_segment(aes(x = min(se.seq), y = meanul95, xend = max(se.seq), yend = meanul95), linetype = 'dotted', data = dfCI) +
+#Reverse the x-axis ordering (se) so that the tip of the funnel will appear
+#at the top of the figure once we swap the x- and y-axes...
+  scale_x_reverse() +
+#Specify the range and interval for the tick-marks of the y-axis (Zr);
+#Choose values that work for you based on your data
+  scale_y_continuous(breaks = seq(-1, 3, 0.5)) +
+#And now we flip the axes so that SE is on y- and Zr is on x-
+  coord_flip() +
+#Finally, apply my APA-format theme (see code at end of post).
+#You could, alternatively, specify theme_bw() instead.
+  theme_bw()
+
+estimate <- fixef(ma_m0_pub)[1]
+se <- fixef(ma_m0_pub)[2]
+se.seq <- seq(0, max(d$EffectSigma[d$Published == 1]), 0.001)
+ll95 <- estimate - (1.96 * se.seq)
+ul95 <- estimate + (1.96 * se.seq)
+ll99 <- estimate - (3.29 * se.seq)
+ul99 <- estimate + (3.29 * se.seq)
+meanll95 <- estimate - (1.96 * se)
+meanul95 <- estimate + (1.96 * se)
+dfCI = data.frame(ll95, ul95, ll99, ul99, se.seq, estimate, meanll95, meanul95)
+
+fp1 <- ggplot(subset(d, Published == 1), aes(EffectSigma, EffectMu)) +
+#Add your data-points to the scatterplot
+  geom_point(shape = 1) +
+#Give the x- and y- axes informative labels
+  xlab('Standard Error') + ylab('Effect Size') +
+#Now using the 'dfCI' data-frame we created, plot dotted lines corresponding
+#to the lower and upper limits of your 95% CI region,
+#And dashed lines corresponding to your 99% CI region
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ll99), linetype = 'dashed', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul99), linetype = 'dashed', data = dfCI) +
+#Now plot dotted lines corresponding to the 95% CI of your meta-analytic estimate
+   geom_segment(aes(x = min(se.seq), y = meanll95, xend = max(se.seq), yend = meanll95), linetype = 'dotted', data = dfCI) +
+  geom_segment(aes(x = min(se.seq), y = meanul95, xend = max(se.seq), yend = meanul95), linetype = 'dotted', data = dfCI) +
+#Reverse the x-axis ordering (se) so that the tip of the funnel will appear
+#at the top of the figure once we swap the x- and y-axes...
+  scale_x_reverse() +
+#Specify the range and interval for the tick-marks of the y-axis (Zr);
+#Choose values that work for you based on your data
+  scale_y_continuous(breaks = seq(-1, 3, 0.5)) +
+#And now we flip the axes so that SE is on y- and Zr is on x-
+  coord_flip() +
+#Finally, apply my APA-format theme (see code at end of post).
+#You could, alternatively, specify theme_bw() instead.
+  theme_bw()
+
+estimate <- fixef(ma_m0_pubpos)[1]
+se <- fixef(ma_m0_pubpos)[2]
+se.seq <- seq(0, max(d$EffectSigma[d$PublishedPos == 1]), 0.001)
+ll95 <- estimate - (1.96 * se.seq)
+ul95 <- estimate + (1.96 * se.seq)
+ll99 <- estimate - (3.29 * se.seq)
+ul99 <- estimate + (3.29 * se.seq)
+meanll95 <- estimate - (1.96 * se)
+meanul95 <- estimate + (1.96 * se)
+dfCI = data.frame(ll95, ul95, ll99, ul99, se.seq, estimate, meanll95, meanul95)
+
+fp2 <- ggplot(subset(d, PublishedPos == 1), aes(EffectSigma, EffectMu)) +
+#Add your data-points to the scatterplot
+  geom_point(shape = 1) +
+#Give the x- and y- axes informative labels
+  xlab('Standard Error') + ylab('Effect Size') +
+#Now using the 'dfCI' data-frame we created, plot dotted lines corresponding
+#to the lower and upper limits of your 95% CI region,
+#And dashed lines corresponding to your 99% CI region
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ll99), linetype = 'dashed', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul99), linetype = 'dashed', data = dfCI) +
+#Now plot dotted lines corresponding to the 95% CI of your meta-analytic estimate
+   geom_segment(aes(x = min(se.seq), y = meanll95, xend = max(se.seq), yend = meanll95), linetype = 'dotted', data = dfCI) +
+  geom_segment(aes(x = min(se.seq), y = meanul95, xend = max(se.seq), yend = meanul95), linetype = 'dotted', data = dfCI) +
+#Reverse the x-axis ordering (se) so that the tip of the funnel will appear
+#at the top of the figure once we swap the x- and y-axes...
+  scale_x_reverse() +
+#Specify the range and interval for the tick-marks of the y-axis (Zr);
+#Choose values that work for you based on your data
+  scale_y_continuous(breaks = seq(-1, 3, 0.5)) +
+#And now we flip the axes so that SE is on y- and Zr is on x-
+  coord_flip() +
+#Finally, apply my APA-format theme (see code at end of post).
+#You could, alternatively, specify theme_bw() instead.
+  theme_bw()
+
+
+estimate <- fixef(ma_m1_all)[1]
+se <- fixef(ma_m1_all)[2]
+se.seq <- seq(0, max(d$EffectSigma), 0.001)
+ll95 <- estimate - (1.96 * se.seq)
+ul95 <- estimate + (1.96 * se.seq)
+ll99 <- estimate - (3.29 * se.seq)
+ul99 <- estimate + (3.29 * se.seq)
+meanll95 <- estimate - (1.96 * se)
+meanul95 <- estimate + (1.96 * se)
+dfCI = data.frame(ll95, ul95, ll99, ul99, se.seq, estimate, meanll95, meanul95)
+
+fp3 <- ggplot(d, aes(EffectSigma, EffectMu)) +
+#Add your data-points to the scatterplot
+  geom_point(shape = 1) +
+#Give the x- and y- axes informative labels
+  xlab('Standard Error') + ylab('Effect Size') +
+#Now using the 'dfCI' data-frame we created, plot dotted lines corresponding
+#to the lower and upper limits of your 95% CI region,
+#And dashed lines corresponding to your 99% CI region
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ll99), linetype = 'dashed', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul99), linetype = 'dashed', data = dfCI) +
+#Now plot dotted lines corresponding to the 95% CI of your meta-analytic estimate
+   geom_segment(aes(x = min(se.seq), y = meanll95, xend = max(se.seq), yend = meanll95), linetype = 'dotted', data = dfCI) +
+  geom_segment(aes(x = min(se.seq), y = meanul95, xend = max(se.seq), yend = meanul95), linetype = 'dotted', data = dfCI) +
+#Reverse the x-axis ordering (se) so that the tip of the funnel will appear
+#at the top of the figure once we swap the x- and y-axes...
+  scale_x_reverse() +
+#Specify the range and interval for the tick-marks of the y-axis (Zr);
+#Choose values that work for you based on your data
+  scale_y_continuous(breaks = seq(-1, 3, 0.5)) +
+#And now we flip the axes so that SE is on y- and Zr is on x-
+  coord_flip() +
+#Finally, apply my APA-format theme (see code at end of post).
+#You could, alternatively, specify theme_bw() instead.
+  theme_bw()
+
+estimate <- fixef(ma_m1_pub)[1]
+se <- fixef(ma_m1_pub)[2]
+se.seq <- seq(0, max(d$EffectSigma[d$Published == 1]), 0.001)
+ll95 <- estimate - (1.96 * se.seq)
+ul95 <- estimate + (1.96 * se.seq)
+ll99 <- estimate - (3.29 * se.seq)
+ul99 <- estimate + (3.29 * se.seq)
+meanll95 <- estimate - (1.96 * se)
+meanul95 <- estimate + (1.96 * se)
+dfCI = data.frame(ll95, ul95, ll99, ul99, se.seq, estimate, meanll95, meanul95)
+
+fp4 <- ggplot(subset(d, Published == 1), aes(EffectSigma, EffectMu)) +
+#Add your data-points to the scatterplot
+  geom_point(shape = 1) +
+#Give the x- and y- axes informative labels
+  xlab('Standard Error') + ylab('Effect Size') +
+#Now using the 'dfCI' data-frame we created, plot dotted lines corresponding
+#to the lower and upper limits of your 95% CI region,
+#And dashed lines corresponding to your 99% CI region
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ll99), linetype = 'dashed', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul99), linetype = 'dashed', data = dfCI) +
+#Now plot dotted lines corresponding to the 95% CI of your meta-analytic estimate
+   geom_segment(aes(x = min(se.seq), y = meanll95, xend = max(se.seq), yend = meanll95), linetype = 'dotted', data = dfCI) +
+  geom_segment(aes(x = min(se.seq), y = meanul95, xend = max(se.seq), yend = meanul95), linetype = 'dotted', data = dfCI) +
+#Reverse the x-axis ordering (se) so that the tip of the funnel will appear
+#at the top of the figure once we swap the x- and y-axes...
+  scale_x_reverse() +
+#Specify the range and interval for the tick-marks of the y-axis (Zr);
+#Choose values that work for you based on your data
+  scale_y_continuous(breaks = seq(-1, 3, 0.5)) +
+#And now we flip the axes so that SE is on y- and Zr is on x-
+  coord_flip() +
+#Finally, apply my APA-format theme (see code at end of post).
+#You could, alternatively, specify theme_bw() instead.
+  theme_bw()
+
+estimate <- fixef(ma_m1_pubpos)[1]
+se <- fixef(ma_m1_pubpos)[2]
+se.seq <- seq(0, max(d$EffectSigma[d$PublishedPos == 1]), 0.001)
+ll95 <- estimate - (1.96 * se.seq)
+ul95 <- estimate + (1.96 * se.seq)
+ll99 <- estimate - (3.29 * se.seq)
+ul99 <- estimate + (3.29 * se.seq)
+meanll95 <- estimate - (1.96 * se)
+meanul95 <- estimate + (1.96 * se)
+dfCI = data.frame(ll95, ul95, ll99, ul99, se.seq, estimate, meanll95, meanul95)
+
+fp5 <- ggplot(subset(d, PublishedPos == 1), aes(EffectSigma, EffectMu)) +
+#Add your data-points to the scatterplot
+  geom_point(shape = 1) +
+#Give the x- and y- axes informative labels
+  xlab('Standard Error') + ylab('Effect Size') +
+#Now using the 'dfCI' data-frame we created, plot dotted lines corresponding
+#to the lower and upper limits of your 95% CI region,
+#And dashed lines corresponding to your 99% CI region
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ll99), linetype = 'dashed', data = dfCI) +
+  geom_line(aes(x = se.seq, y = ul99), linetype = 'dashed', data = dfCI) +
+#Now plot dotted lines corresponding to the 95% CI of your meta-analytic estimate
+   geom_segment(aes(x = min(se.seq), y = meanll95, xend = max(se.seq), yend = meanll95), linetype = 'dotted', data = dfCI) +
+  geom_segment(aes(x = min(se.seq), y = meanul95, xend = max(se.seq), yend = meanul95), linetype = 'dotted', data = dfCI) +
+#Reverse the x-axis ordering (se) so that the tip of the funnel will appear
+#at the top of the figure once we swap the x- and y-axes...
+  scale_x_reverse() +
+#Specify the range and interval for the tick-marks of the y-axis (Zr);
+#Choose values that work for you based on your data
+  scale_y_continuous(breaks = seq(-1, 3, 0.5)) +
+#And now we flip the axes so that SE is on y- and Zr is on x-
+  coord_flip() +
+#Finally, apply my APA-format theme (see code at end of post).
+#You could, alternatively, specify theme_bw() instead.
+  theme_bw()
+
+(fp + fp1 + fp2) / (fp3 + fp4 + fp5)
+
+##  Model comparison
+ma_m0_all <- add_criterion(ma_m0_all, criterion = "loo", cores = 2)
+ma_m1_all <- add_criterion(ma_m1_all, criterion = "loo", cores = 2)
+ma_m0_pub <- add_criterion(ma_m0_pub, criterion = "loo", cores = 2)
+ma_m1_pub <- add_criterion(ma_m1_pub, criterion = "loo", cores = 2)
+ma_m0_pubpos <- add_criterion(ma_m0_pubpos, criterion = "loo", cores = 2)
+ma_m1_pubpos <- add_criterion(ma_m1_pubpos, criterion = "loo", cores = 2)
+
+loo_compare(ma_m0_all, ma_m1_all)
+loo_model_weights(ma_m0_all, ma_m1_all)
+loo_compare(ma_m0_pub, ma_m1_pub)
+loo_model_weights(ma_m0_pub, ma_m1_pub)
+loo_compare(ma_m0_pubpos, ma_m1_pubpos)
+loo_model_weights(ma_m0_pubpos, ma_m1_pubpos)
+```
+
+## Question 2
+
+```{r}
+## Now load the actual data
+d_real <- read_excel("Dropbox/Teaching/2022 - Methods 3/Assignments22/A2_MetaAnalysis/Matrix_MetaAnalysis_Diagnosis_updated290719.xlsx") %>%
+  select(c(
+    "Article", "Year_publication", "TYPE_OF_TASK",
+    "SAMPLE_SIZE_SZ", "SAMPLE_SIZE_HC", 
+    "PITCH_F0_SZ_M", "PITCH_F0_HC_M", "PITCH_F0_SZ_SD", "PITCH_F0_HC_SD", 
+    "PITCH_F0SD_SZ_M", "PITCH_F0SD_HC_M", "PITCH_F0SD_SZ_SD", "PITCH_F0SD_HC_SD"))
+
+d_real <- metafor::escalc('SMD', 
+                          n1i = SAMPLE_SIZE_SZ, n2i = SAMPLE_SIZE_HC, 
+                          m1i = PITCH_F0SD_SZ_M, m2i = PITCH_F0SD_HC_M, 
+                          sd1i = PITCH_F0SD_SZ_SD, sd2i = PITCH_F0SD_HC_SD, 
+                          data = d_real)
+library(mice)
+imp <- mice(d_real)
+
+ma_real_m <- brm(
+  yi | se(vi) ~ 1 + (1|Article),
+  d_real,
+  family = gaussian,
+  prior = ma_p,
+  sample_prior = T,
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+ma_stud_real_m <- brm(
+  yi | se(vi) ~ 1 + (1 | Article),
+  d_real,
+  family = student,
+  prior = ma_p,
+  sample_prior = T,
+  backend = "cmdstanr",
+  threads = threading(2),
+  chains = 2,
+  cores = 2,
+  control = list(
+    adapt_delta = 0.9,
+    max_treedepth = 20
+  ),
+  stan_model_args = list(stanc_options = list("O1"))
+)
+
+ma_real_m
+ma_stud_real_m
+
+ma_real_m <- add_criterion(ma_real_m, criterion = "loo")
+ma_stud_real_m <- add_criterion(ma_stud_real_m, criterion = "loo")
+
+## Now identify influential data points
+
+## Now assess publication bias
+
+## Now assess heterogeneity
+
+## Now add a model with task and do model comparison
+
+
+```
+
