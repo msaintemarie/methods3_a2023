@@ -9,10 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Maxime Sainte-Marie" />
+<meta name="author" content="[FILL IN YOUR NAME]" />
 
 
-<title>Methods 3: Multilevel Statistical Modeling and Machine Learning</title>
+<title>Assignment 0: Data Cleaning</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1294,31 +1294,109 @@ ul.task-list{list-style: none;}
 
 
 
-
-
-
 <style type="text/css">
-
-div.csl-bib-body { }
-div.csl-entry {
-clear: both;
+code {
+white-space: pre;
 }
-.hanging div.csl-entry {
-margin-left:2em;
-text-indent:-2em;
-}
-div.csl-left-margin {
-min-width:2em;
-float:left;
-}
-div.csl-right-inline {
-margin-left:2em;
-padding-left:1em;
-}
-div.csl-indent {
-margin-left: 2em;
+.sourceCode {
+overflow: visible;
 }
 </style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+}
+pre.numberSource { margin-left: 3em; padding-left: 4px; }
+div.sourceCode
+{ color: #cccccc; background-color: #303030; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ffcfaf; } 
+code span.an { color: #7f9f7f; font-weight: bold; } 
+code span.at { } 
+code span.bn { color: #dca3a3; } 
+code span.bu { } 
+code span.cf { color: #f0dfaf; } 
+code span.ch { color: #dca3a3; } 
+code span.cn { color: #dca3a3; font-weight: bold; } 
+code span.co { color: #7f9f7f; } 
+code span.cv { color: #7f9f7f; font-weight: bold; } 
+code span.do { color: #7f9f7f; } 
+code span.dt { color: #dfdfbf; } 
+code span.dv { color: #dcdccc; } 
+code span.er { color: #c3bf9f; } 
+code span.ex { } 
+code span.fl { color: #c0bed1; } 
+code span.fu { color: #efef8f; } 
+code span.im { } 
+code span.in { color: #7f9f7f; font-weight: bold; } 
+code span.kw { color: #f0dfaf; } 
+code span.op { color: #f0efd0; } 
+code span.ot { color: #efef8f; } 
+code span.pp { color: #ffcfaf; font-weight: bold; } 
+code span.sc { color: #dca3a3; } 
+code span.ss { color: #cc9393; } 
+code span.st { color: #cc9393; } 
+code span.va { } 
+code span.vs { color: #cc9393; } 
+code span.wa { color: #7f9f7f; font-weight: bold; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
 
 
 
@@ -1477,10 +1555,10 @@ border-radius: 0px;
 
 
 
-<h1 class="title toc-ignore">Methods 3: Multilevel Statistical Modeling
-and Machine Learning</h1>
-<h4 class="author">Maxime Sainte-Marie</h4>
-<h4 class="date">Autumn 2023</h4>
+<h1 class="title toc-ignore">Assignment 0: Data Cleaning</h1>
+<h3 class="subtitle">Instructions</h3>
+<h4 class="author">[FILL IN YOUR NAME]</h4>
+<h4 class="date">[FILL IN THE DATE]</h4>
 
 </div>
 
@@ -1493,395 +1571,213 @@ blockquote {font-size: 18px;}
 h{font-family: 'Courier New', monospace;}
 h1{text-transform: uppercase}
 h2{font-variant: small-caps;}
-.table-wrapper {overflow-x: scroll;}
 </style>
-<div id="description" class="section level2">
-<h2>Description</h2>
-<p>The purpose of the course is to further develop students’ knowledge
-and skills in statistics and programming.</p>
-<p>The course includes instruction on statistical techniques relying on
-the Generalised Linear Model, including multilevel modelling and basic
-machine learning procedures (e.g. predictive approaches and validation
-techniques). The course includes lectures on statistical and machine
-learning concepts as well as practical exercises in programming.</p>
-<p>This course builds on the Methods 1 and 2 courses and provides skills
-and knowledge needed to understand and apply a wider variety of
-statistical and machine learning methods. The course prepares students
-for Bayesian computational modelling in the Methods 4 course, and
-provides techniques for data analysis relevant to exam projects in
-Social and Cultural Dynamics in Cognition, and in the Bachelor thesis
-project.</p>
-</div>
-<div id="objectives" class="section level2">
-<h2>Objectives</h2>
-<div id="knowledge" class="section level3">
-<h3>Knowledge</h3>
-<p>In the evaluation of the student’s performance, emphasis is placed on
-the extent to which the student is able to</p>
+<p>The objective of this warm-up assignment is to brush up your
+programming and data wrangling skills as well as to introduce you to the
+data set you will be working on in Assignment 1. More precisely, you
+will here be asked here to do the following:</p>
+<ol style="list-style-type: decimal">
+<li>Introduction to the data set</li>
+<li>Introduction to version control
 <ul>
-<li>demonstrate understanding of statistical techniques relying on the
-Generalised Linear Model</li>
-<li>demonstrate understanding of hierarchical modeling methods</li>
-<li>demonstrate understanding of basic machine learning concepts.</li>
-</ul>
-</div>
-<div id="skills" class="section level3">
-<h3>Skills</h3>
-<p>In the evaluation of the student’s performance, emphasis is placed on
-the extent to which the student is able to:</p>
+<li>Create a Github (or gitlab) account</li>
+<li>Link your Git account to your RStudio</li>
+<li>Create a new repository/project</li>
+</ul></li>
+<li>Data Manipulation refresher</li>
+</ol>
 <ul>
-<li>build and evaluate models of hierarchically structured data</li>
-<li>integrate machine learning procedures in data analysis</li>
-<li>communicate analysis processes, results and interpretation.</li>
-</ul>
-</div>
-<div id="competences" class="section level3">
-<h3>Competences</h3>
-<p>In the evaluation of the student’s performance, emphasis is placed on
-the extent to which the student is able to:</p>
+<li>Transform several data sets into a single one
 <ul>
-<li>independently decide on data analysis methods, given a data set and
-a research question</li>
-<li>justify decision making when pre-processing messy data for data
-analysis.</li>
+<li>Filter data so as to keep only the variables needed for next
+assignments</li>
+<li>Tidyverse packages (<strong>stringr</strong> and
+<strong>dplyr</strong>)</li>
+</ul></li>
 </ul>
+<div id="about-the-dataset" class="section level2" number="0.1">
+<h2><span class="header-section-number">0.1</span> About the
+dataset</h2>
+<p>Project: Language development in Autism Spectrum Disorder (ASD)</p>
+<p>Source: <a href="https://www.ncbi.nlm.nih.gov/pubmed/30396129">Fusaroli, Riccardo,
+Ethan Weed, Deborah Fein, and Letitia Naigles. 2019. “Hearing Me Hearing
+You: Reciprocal Effects Between Child and Parent Language in Autism and
+Typical Development.” Cognition 183: 1–18.</a></p>
+<p>Background: Autism Spectrum Disorder (ASD) is often related to
+language impairment, and language impairment strongly affects the
+patients ability to function socially (maintaining a social network,
+thriving at work, etc.). It is therefore crucial to understand how
+language abilities develop in children with ASD, and which factors
+affect them (to figure out e.g. how a child will develop in the future
+and whether there is a need for language therapy).</p>
+<p>However, language impairment is always assessed by relying on the
+parent, teacher or clinician’s subjective judgment of the child, and
+measured very sparsely (e.g. at 3 years old and again at 6). To help
+address this gap in clinical practice, we videotaped around 30 kids with
+ASD and around 30 comparison kids (matched by linguistic performance at
+visit 1) for approximately 30 minutes of naturalistic interactions with
+a parent. We repeated the data collection 6 times per kid at an interval
+of 4 months between each visit.</p>
+<p>We transcribed the data and counted:</p>
+<ol style="list-style-type: decimal">
+<li>the amount of words that each kid uses in each video. Same for the
+parent.</li>
+<li>the amount of unique words that each kid uses in each video. Same
+for the parent.</li>
+<li>the amount of morphemes per utterance (Mean Length of Utterance)
+displayed by each child in each video. Same for the parent.</li>
+</ol>
+<p>Different datasets were built by the researchers involved in the
+project:</p>
+<ol style="list-style-type: decimal">
+<li>demographic and clinical data about the children (recorded by a
+clinical psychologist)</li>
+<li>length of utterance data (calculated by a linguist)</li>
+<li>amount of unique and total words used</li>
+</ol>
+<p>Your job in this assignment is to double-check the data and make it
+analysis-ready for the next assignment, in which we will try to
+understand how children language development is a function of cognitive
+and social factors and how the latter can be used as “cues” to likely
+future language impairments.</p>
 </div>
+<div id="lets-get-started-on-github" class="section level2" number="0.2">
+<h2><span class="header-section-number">0.2</span> Let’s get started on
+GitHub</h2>
+<p>In the assignments you will be asked to upload your code on Github
+and the GitHub repositories will be part of the portfolio, therefore all
+students must make an account and link it to their RStudio (you’ll thank
+us later for this!).</p>
+<p>Follow the link to one of the tutorials indicated in the
+syllabus:</p>
+<ul>
+<li><a href="https://happygitwithr.com/">Happy Git with R</a></li>
+<li><a href="https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN">Alternative1</a></li>
+<li><a href="https://docs.google.com/document/d/1WvApy4ayQcZaLRpD6bvAqhWncUaPmmRimT016-PrLBk/mobilebasic">Alternative2</a></li>
+</ul>
+<p>N.B. Create a GitHub repository for the Assignment 1 and link it to a
+project on your RStudio.</p>
 </div>
-<div id="format" class="section level2">
-<h2>Format</h2>
-<p>Lectures are generally accompanied by readings and other resources.
-All key content is covered in the lecture. However, reading the
-accompanying materials is a very good idea as the contents are covered
-in more details, or from different angles, and in general the readings
-give you the chance to think through the topic and identify your doubts,
-which you can then bring up in class or on alternative channels.</p>
-<p>Lectures should be as interactive as possible, and any question is
-welcome at any time during class.</p>
-<blockquote>
-<p>There are naïve questions, tedious questions, ill-phrased questions,
-questions put after inadequate self-criticism. But every question is a
-cry to understand the world. There is no such thing as a dumb question
-(Sagan C (2011). <em>The Demon-Haunted World: Science as a Candle in
-the, Dark</em>. Ballantine Books.)</p>
-</blockquote>
-<p>Alternatively, you can also ask a question anonymously and in writing
-on a Google Document that will be made available to you for each class.
-You can write questions there before, during, and after lectures. I’ll
-review it from time to time during and between classes to answer them as
-adequately as I can, in incremental and iterative fashion.</p>
+<div id="data-cleaning-and-wrangling" class="section level2" number="0.3">
+<h2><span class="header-section-number">0.3</span> Data Cleaning and
+Wrangling</h2>
+<p>If you’re not in a project in Rstudio, make sure to set your working
+directory here. If you created an RStudio project, then your working
+directory (the directory with your data and code for these assignments)
+is the project directory.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse,</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>               janitor)</span></code></pre></div>
+<p>Load the three data sets, after downloading them from dropbox and
+saving them in your working directory: * Demographic data for the
+participants: <a href="https://www.dropbox.com/s/w15pou9wstgc8fe/demo_train.csv?dl=0" class="uri">https://www.dropbox.com/s/w15pou9wstgc8fe/demo_train.csv?dl=0</a>
+* Length of utterance data: <a href="https://www.dropbox.com/s/usyauqm37a76of6/LU_train.csv?dl=0" class="uri">https://www.dropbox.com/s/usyauqm37a76of6/LU_train.csv?dl=0</a>
+* Word data: <a href="https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0" class="uri">https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0</a></p>
+<p>Explore the 3 data sets (e.g. visualize them, summarize them, etc.).
+You will see that the data is messy, since the psychologist collected
+the demographic data, the linguist analyzed the length of utterance in
+May 2014 and the fumbling jack-of-all-trades analyzed the words several
+months later. In particular: - the same variables might have different
+names (e.g. participant and visit identifiers) - the same variables
+might report the values in different ways (e.g. participant and visit
+IDs) Welcome to real world of messy data :-)</p>
+<p>Before being able to combine the data sets we need to make sure the
+relevant variables have the same names and the same kind of values.</p>
+<p>So:</p>
+<div id="identify-which-variable-names-do-not-match-that-is-are-spelled-differently-and-find-a-way-to-transform-variable-names." class="section level3" number="0.3.1">
+<h3><span class="header-section-number">0.3.1</span> Identify which
+variable names do not match (that is are spelled differently) and find a
+way to transform variable names.</h3>
+<p>Pay particular attention to the variables indicating participant and
+visit.</p>
+<p>Tip: look through the chapter on data transformation in R for data
+science (<a href="http://r4ds.had.co.nz" class="uri">http://r4ds.had.co.nz</a>). Alternatively you can look into
+the package dplyr (part of tidyverse), or google “how to rename
+variables in R”. Or check the janitor R package. There are always
+multiple ways of solving any problem and no absolute best method.</p>
 </div>
-<div id="evaluation" class="section level2">
-<h2>Evaluation</h2>
-<p>The course is aimed at giving you a conceptual and hands-on
-understanding of estimation and generalizability issues, together with
-data processing and coding skills. Accordingly, the exam consists in 4
-portfolio assignments (indicated as A1 to A4 in the course schedule)
-challenging you to apply your understanding your understanding and
-programming skills.</p>
-<p>RMarkdown files with instructions for each assignment will be made
-available online around the time of the relevant class. Both group and
-one-to-one support from the teacher and the instructors will only be
-provided during classroom hours. Each assignment will consist of a
-Github/Gitlab repository with all the code, and a document containing
-the answers to the questions assigned. You are strongly recommended to
-submit the assignments during the course, so you can get collective
-feedback. You must re-submit the whole portfolio - revised according to
-the feedback - for the final exam. You can submit the full portfolio
-even if you haven’t managed to submit each assignment during the
-course.</p>
-<p>Each assignment can be done alone or in groups. The latter is however
-strongly recommended, for various reasons. Most obviously, teamwork
-creates opportunities to establish connections and relationships that
-can be beneficial to you in the longer term, as it will offer you the
-opportunity to hone crucial collaboration skills such as communication,
-leadership, conflict resolution, time management, and resource
-allocation. But also, the pooling of perspectives, backgrounds,
-knowledge, skills, working styles, and resources made possible by
-teamwork will lead to a deeper understanding of the subject matter as
-well as more comprehensive, exhaustive, and creative work output for you
-and everyone else involved. Finally, shared responsibility and
-accountability can increase motivation and dedication, and getting
-constructive feedback from your teammates can both be a learning and
-confidence-boosting experience for you. Of course, problems specific to
-teamwork may arise during this course (communication issues, conflicting
-schedules, unequal contributions…). While we recommend to tackle these
-sooner than later, it is important to stress that learning to navigate
-and overcome these challenges is a valuable aspect of teamwork
-itself.</p>
+<div id="find-a-way-to-homogenize-the-way-visit-is-reported-visit1-vs.-1." class="section level3" number="0.3.2">
+<h3><span class="header-section-number">0.3.2</span> Find a way to
+homogenize the way “visit” is reported (visit1 vs. 1).</h3>
+<p>Tip: The stringr package is what you need. str_extract () will allow
+you to extract only the digit (number) from a string, by using the
+regular expression \d.</p>
 </div>
-<div id="schedule" class="section level2">
-<h2>Schedule</h2>
-<p>Students are expected to read mandatory lectures before each session.
-<strong>Important: class readings are subject to change, contingent on
-mitigating circumstances as well as the progress we make as a
-class</strong>. Attending lectures and regularly checking the course
-website for updates is thus strongly recommended.</p>
-<p>Mandatory readings are written in <strong>bold</strong>
-characters</p>
-<table>
-<colgroup>
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="15%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="center">#Week</th>
-<th align="center">Date</th>
-<th align="center">Subject</th>
-<th align="center">Readings</th>
-<th align="center">Questions</th>
-<th align="center">Slides</th>
-<th align="center">Assignment</th>
-<th align="center">Tutor</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="center">1</td>
-<td align="center">Sept5<br />Sept7</td>
-<td align="center">Syllabus<br />Introduction to Git</td>
-<td align="center"><strong><span class="citation"><a href="#ref-dienes2008understanding">1</a></span></strong>,<span class="citation"><a href="#ref-vasishth2016statistical">2</a>,<a href="#ref-wickham2023">3</a></span></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W1</a></td>
-<td align="center">W1</td>
-<td align="center">A1</td>
-<td align="center">LWL</td>
-</tr>
-<tr class="even">
-<td align="center">2</td>
-<td align="center">Sept12<br />Sept14</td>
-<td align="center">Introduction/Refresher,<br />Bayesian statistics</td>
-<td align="center"></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W2</a></td>
-<td align="center">W2</td>
-<td align="center">A1</td>
-<td align="center">MHSM</td>
-</tr>
-<tr class="odd">
-<td align="center">3</td>
-<td align="center">Sept19</td>
-<td align="center">Multilevel Linear Models I</td>
-<td align="center"><strong><span class="citation"><a href="#ref-debruine2021understanding">4</a>,<a href="#ref-fusaroli2019hearing">5</a></span></strong>,<span class="citation"><a href="#ref-harrison2018brief">6</a>,<a href="#ref-winter2019statistics">7</a></span></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W3</a></td>
-<td align="center">W3</td>
-<td align="center">A1</td>
-<td align="center"></td>
-</tr>
-<tr class="even">
-<td align="center">4</td>
-<td align="center">Sept26<br />Sept28</td>
-<td align="center">Multilevel Linear Models II</td>
-<td align="center"></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W4</a></td>
-<td align="center">W4</td>
-<td align="center">A2</td>
-<td align="center">LWL</td>
-</tr>
-<tr class="odd">
-<td align="center">5</td>
-<td align="center">Oct3<br />Oct5</td>
-<td align="center">Explanation vs. Prediction</td>
-<td align="center"><strong><span class="citation"><a href="#ref-rocca2021putting">8</a></span></strong>,<span class="citation"><a href="#ref-chekroud2018validation">9</a>,<a href="#ref-breiman2001statistical">10</a></span></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W5</a></td>
-<td align="center">W5</td>
-<td align="center">A2</td>
-<td align="center">MHSM</td>
-</tr>
-<tr class="even">
-<td align="center">6</td>
-<td align="center">Oct10<br />Oct12</td>
-<td align="center">Physiological Data &amp;<br />Advanced Multilevel
-Linear Models</td>
-<td align="center"><strong><span class="citation"><a href="#ref-fusaroli2016heart">11</a>,<a href="#ref-ferrer2013dynamical">12</a></span></strong>,<span class="citation"><a href="#ref-konvalinka2023role">13</a></span></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W6</a></td>
-<td align="center">W6</td>
-<td align="center">A3</td>
-<td align="center">LWL</td>
-</tr>
-<tr class="odd">
-<td align="center">7</td>
-<td align="center">Oct24<br />Oct26</td>
-<td align="center">Advanced Multilevel Linear Models</td>
-<td align="center"></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W7</a></td>
-<td align="center">W7</td>
-<td align="center">A3</td>
-<td align="center">MHSM</td>
-</tr>
-<tr class="even">
-<td align="center">8</td>
-<td align="center">Oct31<br />Nov2</td>
-<td align="center">Prediction &amp;<br />Feature Selection</td>
-<td align="center"><strong><span class="citation"><a href="#ref-kuhn2019a">14</a></span></strong></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W8</a></td>
-<td align="center">W8</td>
-<td align="center">A3</td>
-<td align="center">LWL</td>
-</tr>
-<tr class="odd">
-<td align="center">9</td>
-<td align="center">Nov7<br />Nov9</td>
-<td align="center">Cumulative Scientific Approaches<br />Midway
-Evaluation</td>
-<td align="center"><strong><span class="citation"><a href="#ref-parola2020voice">15</a></span></strong>,<span class="citation"><a href="#ref-parola2023voice">16</a>–<a href="#ref-harrer2021">18</a></span></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W9</a></td>
-<td align="center">W9</td>
-<td align="center">A4</td>
-<td align="center">MHSM</td>
-</tr>
-<tr class="even">
-<td align="center">10</td>
-<td align="center">Nov14<br />Nov16</td>
-<td align="center">Classification problems</td>
-<td align="center"><span class="citation"><a href="#ref-kuhn2019b">19</a></span></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W10</a></td>
-<td align="center">W10</td>
-<td align="center">A4</td>
-<td align="center">LWL</td>
-</tr>
-<tr class="odd">
-<td align="center">11</td>
-<td align="center">Nov21<br />Nov23</td>
-<td align="center">Generalized Multilevel Models &amp;
-Classification</td>
-<td align="center"></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W11</a></td>
-<td align="center">W11</td>
-<td align="center">A4</td>
-<td align="center">MHSM</td>
-</tr>
-<tr class="even">
-<td align="center">12</td>
-<td align="center">Nov28<br />Nov30</td>
-<td align="center">Machine Learning Pipelines I</td>
-<td align="center"></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W12</a></td>
-<td align="center">W12</td>
-<td align="center">A4</td>
-<td align="center">LWL</td>
-</tr>
-<tr class="odd">
-<td align="center">13</td>
-<td align="center">Dec5<br />Dec7</td>
-<td align="center">Machine Learning Pipelines II</td>
-<td align="center"></td>
-<td align="center"><a href="https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing">W13</a></td>
-<td align="center">W13</td>
-<td align="center">A4</td>
-<td align="center">MHSM</td>
-</tr>
-</tbody>
-</table>
+<div id="we-also-need-to-make-a-small-adjustment-to-the-content-of-the-child.id-column-in-the-demographic-data.-within-this-column-names-that-are-not-abbreviations-do-not-end-with-.-i.e.-adam-which-is-the-case-in-the-other-two-data-sets-i.e.-adam..-if-the-content-of-the-two-variables-isnt-identical-the-rows-will-not-be-merged." class="section level3" number="0.3.3">
+<h3><span class="header-section-number">0.3.3</span> We also need to
+make a small adjustment to the content of the Child.ID column in the
+demographic data. Within this column, names that are not abbreviations
+do not end with “.” (i.e. Adam), which is the case in the other two data
+sets (i.e. Adam.). If The content of the two variables isn’t identical
+the rows will not be merged.</h3>
+<p>A neat way to solve the problem is simply to remove all “.” in all
+data sets.</p>
+<p>Tip: stringr is helpful again. Look up str_replace_all Tip: You can
+either have one line of code for each child name that is to be changed
+(easier, more typing) or specify the pattern that you want to match
+(more complicated: look up “regular expressions”, but less typing)</p>
 </div>
-<div id="references" class="section level2 unnumbered">
-<h2 class="unnumbered">References</h2>
-<div id="refs" class="references csl-bib-body">
-<div id="ref-dienes2008understanding" class="csl-entry">
-<div class="csl-left-margin">1. </div><div class="csl-right-inline">Dienes Z. Chapter 3: Neyman, pearson and
-hypothesis testing. In: Understanding psychology as a science: An
-introduction to scientific and statistical inference. Springer; 2008.
+<div id="filtering" class="section level3" number="0.3.4">
+<h3><span class="header-section-number">0.3.4</span> Filtering</h3>
+<p>Now that the nitty gritty details of the different data sets are
+fixed, we want to make a subset of each data set only containig the
+variables that we wish to use in the final data set. For this we use the
+tidyverse package dplyr, which contains the function select().</p>
+<p>The variables we need are: * Child.ID, * Visit, * Diagnosis, *
+Ethnicity, * Gender, * Age, * ADOS,<br />
+* MullenRaw, * ExpressiveLangRaw, * Socialization * MOT_MLU, * CHI_MLU,
+* types_MOT, * types_CHI, * tokens_MOT, * tokens_CHI.</p>
+<p>Most variables should make sense, here the less intuitive ones. *
+ADOS (Autism Diagnostic Observation Schedule) indicates the severity of
+the autistic symptoms (the higher the score, the worse the symptoms).
+Ref: <a href="https://link.springer.com/article/10.1023/A:1005592401947" class="uri">https://link.springer.com/article/10.1023/A:1005592401947</a>
+* MLU stands for mean length of utterance (usually a proxy for syntactic
+complexity) * types stands for unique words (e.g. even if “doggie” is
+used 100 times it only counts for 1) * tokens stands for overall amount
+of words (if “doggie” is used 100 times it counts for 100) * MullenRaw
+indicates non verbal IQ, as measured by Mullen Scales of Early Learning
+(MSEL <a href="https://link.springer.com/referenceworkentry/10.1007%2F978-1-4419-1698-3_596" class="uri">https://link.springer.com/referenceworkentry/10.1007%2F978-1-4419-1698-3_596</a>)
+* ExpressiveLangRaw indicates verbal IQ, as measured by MSEL *
+Socialization indicates social interaction skills and social
+responsiveness, as measured by Vineland (<a href="https://cloudfront.ualberta.ca/-/media/ualberta/faculties-and-programs/centres-institutes/community-university-partnership/resources/tools---assessment/vinelandjune-2012.pdf" class="uri">https://cloudfront.ualberta.ca/-/media/ualberta/faculties-and-programs/centres-institutes/community-university-partnership/resources/tools---assessment/vinelandjune-2012.pdf</a>)</p>
+<p>Feel free to rename the variables into something you can remember
+(i.e. nonVerbalIQ, verbalIQ)</p>
 </div>
+<div id="merging" class="section level3" number="0.3.5">
+<h3><span class="header-section-number">0.3.5</span> Merging</h3>
+<p>Finally we are ready to merge all the data sets into just one.</p>
+<p>Some things to pay attention to: * make sure to check that the merge
+has included all relevant data (e.g. by comparing the number of rows) *
+make sure to understand whether (and if so why) there are NAs in the
+data set (e.g. some measures were not taken at all visits, some
+recordings were lost or permission to use was withdrawn)</p>
 </div>
-<div id="ref-vasishth2016statistical" class="csl-entry">
-<div class="csl-left-margin">2. </div><div class="csl-right-inline">Vasishth S, Nicenboim B. Statistical methods
-for linguistic research: Foundational ideas–part <span>I</span>.
-Language and Linguistics Compass. 2016;108:349–69. </div>
+<div id="only-using-clinical-measures-from-visit-1" class="section level3" number="0.3.6">
+<h3><span class="header-section-number">0.3.6</span> Only using clinical
+measures from Visit 1</h3>
+<p>In order for our models to be useful, we want to minimize the need to
+actually test children as they develop. In other words, we would like to
+be able to understand and predict the children’s linguistic development
+after only having tested them once. Therefore we need to make sure that
+our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are
+reporting (for all visits) only the scores from visit 1.</p>
+<p>A possible way to do so: * create a new data set with only visit 1,
+child id and the 4 relevant clinical variables to be merged with the old
+dataset * rename the clinical variables (e.g. ADOS to ADOS1) and remove
+the visit (so that the new clinical variables are reported for all 6
+visits) * merge the new data set with the old</p>
 </div>
-<div id="ref-wickham2023" class="csl-entry">
-<div class="csl-left-margin">3. </div><div class="csl-right-inline">Wickham H, Çetinkaya-Rundel M, Grolemund G. R
-for data science. O’Reilly; 2023. </div>
-</div>
-<div id="ref-debruine2021understanding" class="csl-entry">
-<div class="csl-left-margin">4. </div><div class="csl-right-inline">DeBruine LM, Barr DJ. Understanding
-mixed-effects models through data simulation. Advances in Methods and
-Practices in Psychological Science. 2021;41:2515245920965119. </div>
-</div>
-<div id="ref-fusaroli2019hearing" class="csl-entry">
-<div class="csl-left-margin">5. </div><div class="csl-right-inline">Fusaroli R, Weed E, Fein D, Naigles L. Hearing
-me hearing you: Reciprocal effects between child and parent language in
-autism and typical development. Cognition. 2019;183:1–18. </div>
-</div>
-<div id="ref-harrison2018brief" class="csl-entry">
-<div class="csl-left-margin">6. </div><div class="csl-right-inline">Harrison XA, Donaldson L, Correa-Cano ME, Evans
-J, Fisher DN, Goodwin CE, et al. A brief introduction to mixed effects
-modelling and multi-model inference in ecology. PeerJ. 2018;6:e4794.
-</div>
-</div>
-<div id="ref-winter2019statistics" class="csl-entry">
-<div class="csl-left-margin">7. </div><div class="csl-right-inline">Winter B. Statistics for linguists: An
-introduction using r. In Routledge; 2019. </div>
-</div>
-<div id="ref-rocca2021putting" class="csl-entry">
-<div class="csl-left-margin">8. </div><div class="csl-right-inline">Rocca R, Yarkoni T. Putting psychology to the
-test: Rethinking model evaluation through benchmarking and prediction.
-Advances in Methods and Practices in Psychological Science.
-2021;43:25152459211026864. </div>
-</div>
-<div id="ref-chekroud2018validation" class="csl-entry">
-<div class="csl-left-margin">9. </div><div class="csl-right-inline">Chekroud A. Why validation matters: A
-demonstration predicting antipsychotic response using 5 rcts.
-Schizophrenia Bulletin. 2018;44Suppl 1:S157. </div>
-</div>
-<div id="ref-breiman2001statistical" class="csl-entry">
-<div class="csl-left-margin">10. </div><div class="csl-right-inline">Breiman L. Statistical modeling: The two
-cultures (with comments and a rejoinder by the author). Statistical
-science. 2001;163:199–231. </div>
-</div>
-<div id="ref-fusaroli2016heart" class="csl-entry">
-<div class="csl-left-margin">11. </div><div class="csl-right-inline">Fusaroli R, Bjørndahl JS, Roepstorff A, Tylén
-K. A heart for interaction: Shared physiological dynamics and behavioral
-coordination in a collective, creative construction task. Journal of
-Experimental Psychology: Human Perception and Performance.
-2016;429:1297. </div>
-</div>
-<div id="ref-ferrer2013dynamical" class="csl-entry">
-<div class="csl-left-margin">12. </div><div class="csl-right-inline">Ferrer E, Helm JL. Dynamical systems modeling
-of physiological coregulation in dyadic interactions. International
-journal of psychophysiology. 2013;883:296–308. </div>
-</div>
-<div id="ref-konvalinka2023role" class="csl-entry">
-<div class="csl-left-margin">13. </div><div class="csl-right-inline">Konvalinka I, Sebanz N, Knoblich G. The role of
-reciprocity in dynamic interpersonal coordination of physiological
-rhythms. Cognition. 2023;230:105307. </div>
-</div>
-<div id="ref-kuhn2019a" class="csl-entry">
-<div class="csl-left-margin">14. </div><div class="csl-right-inline">Kuhn M, Johnson K. Feature engineering and
-selection: A practical approach for predictive models. In: Chapter 10.
-Boca Raton, FL: Chapman; Hall/CRC; 2019. </div>
-</div>
-<div id="ref-parola2020voice" class="csl-entry">
-<div class="csl-left-margin">15. </div><div class="csl-right-inline">Parola A, Simonsen A, Bliksted V, Fusaroli R.
-Voice patterns in schizophrenia: A systematic review and bayesian
-meta-analysis. Schizophrenia research. 2020;216:24–40. </div>
-</div>
-<div id="ref-parola2023voice" class="csl-entry">
-<div class="csl-left-margin">16. </div><div class="csl-right-inline">Parola A, Simonsen A, Lin JM, Zhou Y, Wang H,
-Ubukata S, et al. Voice patterns as markers of schizophrenia: Building a
-cumulative generalizable approach via a cross-linguistic and
-meta-analysis based investigation. Schizophrenia Bulletin.
-2023;49Supplement_2:S125–41. </div>
-</div>
-<div id="ref-grames2022systematic" class="csl-entry">
-<div class="csl-left-margin">17. </div><div class="csl-right-inline">Grames EM, Schwartz D, Elphick CS. A systematic
-method for hypothesis synthesis and conceptual model development.
-Methods in Ecology and Evolution. 2022;139:2078–87. </div>
-</div>
-<div id="ref-harrer2021" class="csl-entry">
-<div class="csl-left-margin">18. </div><div class="csl-right-inline">Harrer M, Cuijpers P, Furukawa T, Ebert D.
-Doing meta-analysis with r: A hands-on guide. New York: Chapman;
-Hall/CRC; 2021. </div>
-</div>
-<div id="ref-kuhn2019b" class="csl-entry">
-<div class="csl-left-margin">19. </div><div class="csl-right-inline">Kuhn M, Johnson K. Chapter 11: Measuring
-performance in classification problems. In: Feature engineering and
-selection: A practical approach for predictive models. Boca Raton, FL:
-Chapman; Hall/CRC; 2019. </div>
-</div>
+<div id="final-touches" class="section level3" number="0.3.7">
+<h3><span class="header-section-number">0.3.7</span> Final touches</h3>
+<p>Now we want to * anonymise our participants (they are real
+children!). * make sure the variables have sensible values. E.g. right
+now gender is marked 1 and 2, but in two weeks you will not be able to
+remember, which gender were connected to which number, so change the
+values from 1 and 2 to Female and Male in the gender variable (calling
+Female F would create issues, since F is also used for FALSE). For the
+same reason, you should also change the values of Diagnosis from A and B
+to ASD (autism spectrum disorder) and TD (typically developing). Tip:
+Try taking a look at ifelse(), or google “how to rename levels in R”. *
+Save the data set using into a csv file. Hint: look into write.csv()</p>
 </div>
 </div>
 

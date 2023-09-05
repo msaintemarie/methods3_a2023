@@ -1,61 +1,87 @@
 ---
-title: "Assignment 1 - Data Cleaning - Instructions"
+title: "Assignment 0: Data Cleaning"
+subtitle: 'Instructions'
 author: "[FILL IN YOUR NAME]"
 date: "[FILL IN THE DATE]"
-output: html_document
+output:
+  html_document:
+      toc: yes
+      number_sections: yes
+      toc_float: yes
+      theme: united
+      highlight: zenburn
+geometry: margin=1in
+knit: (function(inputFile, encoding) {
+  browseURL(
+    rmarkdown::render(
+      inputFile,
+      encoding = encoding,
+      output_file = "A0.html"))})
+bibliography: '../../../data/bibliography.bib'
 ---
 
-# Brushing up your code skills
+<style type="text/css">
+body, td {font-size: 18px; font-family: 'Courier New', monospace;}
+code.r{font-size: 18px;}
+pre {font-size: 18px}
+blockquote {font-size: 18px;}
+h{font-family: 'Courier New', monospace;}
+h1{text-transform: uppercase}
+h2{font-variant: small-caps;}
+</style>
 
-In this first part of the assignment we will brush up your programming skills, and make you familiar with the data sets you will be analyzing for assignment 1.
+The objective of this warm-up assignment is to brush up your programming and data wrangling skills as well as to introduce you to the data set you will be working on in Assignment 1. More precisely, you will here be asked here to do the following:
 
-In this warm-up assignment you will:
-1) Create a Github (or gitlab) account, link it to your RStudio, and create a new repository/project
-2) Use small nifty lines of code to transform several data sets into just one. The final data set will contain only the variables that are needed for the analysis in the next parts of the assignment
-3) Warm up your tidyverse skills (especially the sub-packages stringr and dplyr), which you will find handy for later assignments.
+1. Introduction to the data set
+2. Introduction to version control
+   - Create a Github (or gitlab) account
+   - Link your Git account to your RStudio
+   - Create a new repository/project
+3. Data Manipulation refresher
+  - Transform several data sets into a single one
+    - Filter data so as to keep only the variables needed for next assignments
+    - Tidyverse packages (**stringr** and **dplyr**)
 
-N.B: Usually you'll also have to doc/pdf with a text. Not for Assignment 0.
+## About the dataset
 
-## Learning objectives:
+Project: Language development in Autism Spectrum Disorder (ASD)
 
-- Become comfortable with tidyverse (and R in general)
-- Test out the git integration with RStudio
-- Build expertise in data wrangling (which will be used in future assignments)
-
-
-## 0. First an introduction on the data
-
-# Language development in Autism Spectrum Disorder (ASD)
-
-Reference to the study: https://www.ncbi.nlm.nih.gov/pubmed/30396129
+Source: [Fusaroli, Riccardo, Ethan Weed, Deborah Fein, and Letitia Naigles. 2019. “Hearing Me Hearing You: Reciprocal Effects Between Child and Parent Language in Autism and Typical Development.” Cognition 183: 1–18.](https://www.ncbi.nlm.nih.gov/pubmed/30396129)
 
 Background: Autism Spectrum Disorder (ASD) is often related to language impairment, and language impairment strongly affects the patients ability to function socially (maintaining a social network, thriving at work, etc.). It is therefore crucial to understand how language abilities develop in children with ASD, and which factors affect them (to figure out e.g. how a child will develop in the future and whether there is a need for language therapy).
-However, language impairment is always quantified by relying on the parent, teacher or clinician subjective judgment of the child, and measured very sparsely (e.g. at 3 years of age and again at 6). 
 
-In this study we videotaped circa 30 kids with ASD and circa 30 comparison kids (matched by linguistic performance at visit 1) for ca. 30 minutes of naturalistic interactions with a parent. We repeated the data collection 6 times per kid, with 4 months between each visit. We transcribed the data and counted: 
-i) the amount of words that each kid uses in each video. Same for the parent.
-ii) the amount of unique words that each kid uses in each video. Same for the parent.
-iii) the amount of morphemes per utterance (Mean Length of Utterance) displayed by each child in each video. Same for the parent. 
+However, language impairment is always assessed by relying on the parent, teacher or clinician's subjective judgment of the child, and measured very sparsely (e.g. at 3 years old and again at 6). To help address this gap in clinical practice, we videotaped around 30 kids with ASD and around 30 comparison kids (matched by linguistic performance at visit 1) for approximately 30 minutes of naturalistic interactions with a parent. We repeated the data collection 6 times per kid at an interval of 4 months between each visit.
 
-Different researchers involved in the project provide you with different datasets: 
+We transcribed the data and counted:
+
+1) the amount of words that each kid uses in each video. Same for the parent.
+2) the amount of unique words that each kid uses in each video. Same for the parent.
+3) the amount of morphemes per utterance (Mean Length of Utterance) displayed by each child in each video. Same for the parent. 
+
+Different datasets were built by the researchers involved in the project:
+
 1) demographic and clinical data about the children (recorded by a clinical psychologist)
 2) length of utterance data (calculated by a linguist)
-3) amount of unique and total words used (calculated by a fumbling jack-of-all-trade, let's call him RF)
+3) amount of unique and total words used
 
-Your job in this assignment is to double check the data and make sure that it is ready for the analysis proper (Assignment 2), in which we will try to understand how the children's language develops as they grow as a function of cognitive and social factors and which are the "cues" suggesting a likely future language impairment.
+Your job in this assignment is to double-check the data and make it analysis-ready for the next assignment, in which we will try to understand how children language development is a function of cognitive and social factors and how the latter can be used as "cues" to likely future language impairments.
 
-## 1. Let's get started on GitHub
+## Let's get started on GitHub
 
 In the assignments you will be asked to upload your code on Github and the GitHub repositories will be part of the portfolio, therefore all students must make an account and link it to their RStudio (you'll thank us later for this!).
 
-Follow the link to one of the tutorials indicated in the syllabus: 
-* Recommended: https://happygitwithr.com/
-*	Alternative (if the previous doesn't work): https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN
-*	Alternative (if the previous doesn't work): https://docs.google.com/document/d/1WvApy4ayQcZaLRpD6bvAqhWncUaPmmRimT016-PrLBk/mobilebasic
+- Install [latest **R** version](https://mirrors.dotsrc.org/cran/)
+- Install [latest **RStudio** version](https://posit.co/download/rstudio-desktop/)
+
+Follow the link to one of the tutorials indicated in the syllabus:
+
+- [Happy Git with R](https://happygitwithr.com/)
+- [Alternative1](https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN)
+- [Alternative2](https://docs.google.com/document/d/1WvApy4ayQcZaLRpD6bvAqhWncUaPmmRimT016-PrLBk/mobilebasic)
 
 N.B. Create a GitHub repository for the Assignment 1 and link it to a project on your RStudio.
 
-## 2. Now let's take dirty dirty data sets and make them into a tidy one
+## Data Cleaning and Wrangling
 
 If you're not in a project in Rstudio, make sure to set your working directory here.
 If you created an RStudio project, then your working directory (the directory with your data and code for these assignments) is the project directory.
@@ -84,7 +110,7 @@ Before being able to combine the data sets we need to make sure the relevant var
 
 So:
 
-2a. Identify which variable names do not match (that is are spelled differently) and find a way to transform variable names.
+### Identify which variable names do not match (that is are spelled differently) and find a way to transform variable names.
 Pay particular attention to the variables indicating participant and visit.
 
 Tip: look through the chapter on data transformation in R for data science (http://r4ds.had.co.nz). Alternatively you can look into the package dplyr (part of tidyverse), or google "how to rename variables in R". Or check the janitor R package. There are always multiple ways of solving any problem and no absolute best method.
@@ -94,7 +120,7 @@ Tip: look through the chapter on data transformation in R for data science (http
 
 ```
 
-2b. Find a way to homogenize the way "visit" is reported (visit1 vs. 1).
+### Find a way to homogenize the way "visit" is reported (visit1 vs. 1).
 
 Tip: The stringr package is what you need. str_extract () will allow you to extract only the digit (number) from a string, by using the regular expression \\d.
 
@@ -104,7 +130,7 @@ Tip: The stringr package is what you need. str_extract () will allow you to extr
 
 ```
 
-2c. We also need to make a small adjustment to the content of the Child.ID column in the demographic data. Within this column, names that are not abbreviations do not end with "." (i.e. Adam), which is the case in the other two data sets (i.e. Adam.). If The content of the two variables isn't identical the rows will not be merged.
+### We also need to make a small adjustment to the content of the Child.ID column in the demographic data. Within this column, names that are not abbreviations do not end with "." (i.e. Adam), which is the case in the other two data sets (i.e. Adam.). If The content of the two variables isn't identical the rows will not be merged.
 A neat way to solve the problem is simply to remove all "." in all data sets.
 
 Tip: stringr is helpful again. Look up str_replace_all
@@ -115,7 +141,9 @@ Tip: You can either have one line of code for each child name that is to be chan
 
 ```
 
-2d. Now that the nitty gritty details of the different data sets are fixed, we want to make a subset of each data set only containig the variables that we wish to use in the final data set.
+### Filtering
+
+Now that the nitty gritty details of the different data sets are fixed, we want to make a subset of each data set only containig the variables that we wish to use in the final data set.
 For this we use the tidyverse package dplyr, which contains the function select(). 
 
 The variables we need are: 
@@ -151,7 +179,9 @@ Feel free to rename the variables into something you can remember (i.e. nonVerba
 
 ```
 
-2e. Finally we are ready to merge all the data sets into just one. 
+### Merging
+
+Finally we are ready to merge all the data sets into just one. 
 
 Some things to pay attention to:
 * make sure to check that the merge has included all relevant data (e.g. by comparing the number of rows)
@@ -163,7 +193,8 @@ Some things to pay attention to:
 ```
 
 
-2f. Only using clinical measures from Visit 1
+### Only using clinical measures from Visit 1
+
 In order for our models to be useful, we want to minimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
 
 A possible way to do so:
@@ -177,7 +208,7 @@ A possible way to do so:
 
 ```
 
-2g. Final touches
+### Final touches
 
 Now we want to
 * anonymise our participants (they are real children!). 

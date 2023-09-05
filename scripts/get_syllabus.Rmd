@@ -15,22 +15,20 @@ knit: (function(inputFile, encoding) {
       output_file = "syllabus.html",
       output_dir = '../documents/'))})
 bibliography: '../data/bibliography.bib'
+csl: '../data/vancouver.csl'
+link-citations: true
 
 title: "Methods 3: Multilevel Statistical Modeling and Machine Learning"
 author: Maxime Sainte-Marie
 date: "Autumn 2023"
 
-email: "msaintemarie@gmail.com"
+email: "mshm@cc.au.dk"
 web: "svmiller.com/teaching"
 officehours: "\\shrug"
 office: "\\shrug"
 classroom: "\\shrug"
 classhours: "\\shrug"
 
-fontfamily: mathpazo
-fontsize: 11pt
-header-includes:
-   - \linespread{1.05}
 ---
 
 <style type="text/css">
@@ -41,6 +39,7 @@ blockquote {font-size: 18px;}
 h{font-family: 'Courier New', monospace;}
 h1{text-transform: uppercase}
 h2{font-variant: small-caps;}
+.table-wrapper {overflow-x: scroll;}
 </style>
 
 
@@ -217,106 +216,24 @@ Each assignment can be done alone or in groups. The latter is however strongly r
 
 Students are expected to read mandatory lectures before each session. **Important: class readings are subject to change, contingent on mitigating circumstances as well as the progress we make as a class**. Attending lectures and regularly checking the course website for updates is thus strongly recommended.
 
-1. Introduction and Refresher
-    - Quiz!!!
-    - Slides
-    - Questions for discussion
-    - Setting up your computer
-        - Install [latest **R** version](https://mirrors.dotsrc.org/cran/)
-        - Install [latest **RStudio** version](https://posit.co/download/rstudio-desktop/)
-        - Setup [**Github/Gitlab** with RStudio](https://happygitwithr.com)
-    - Mandatory reading
-    
-        > `r capture.output(print(biblio["dienes2008understanding"]))`
-        
-    - Recommended readings
-    
-        > `r capture.output(print(biblio["vasishth2016statistical"]))`
-        > 
-        > `r capture.output(print(biblio["wickham2023"]))` [https://r4ds.hadley.nz]
+Mandatory readings are written in **bold** characters
 
-        
-2. Multilevel Linear Models I
-    - Slides
-    - Mandatory Reading
-    
-        > `r capture.output(print(biblio["debruine2021understanding"]))`
-        
-    - Recommended Readings
-    
-        > `r capture.output(print(biblio["harrison2018brief"]))`
-        >  
-        > `r capture.output(print(biblio["winter2019statistics"]))`
-        >  
-        > `r capture.output(print(biblio["fusaroli2019hearing"]))`
-        
-3. Multilevel Linear Models II
-    - A1: Language Development in ASD. Part II
-4. Explanation vs. Prediction (A first case of machine learning)
-    - Mandatory Reading
-    
-        >  `r capture.output(print(biblio["rocca2021putting"]))`
-        
-    - Recommended Readings
-    
-        > `r capture.output(print(biblio["chekroud2018validation"]))`
-        >  
-        > `r capture.output(print(biblio["breiman2001statistical"]))`
-        
-    - A1: Practical Exercise - Language Development in ASD. Part III
-        - [Package & Tutorial](https://github.com/LudvigOlsen/cvms)
-        
-5. Physiological data and advanced Multilevel Linear Models
-    - Mandatory Readings
-    
-        > `r capture.output(print(biblio["fusaroli2016heart"]))`
-        >  
-        > `r capture.output(print(biblio["ferrer2013dynamical"]))`
-        
-    - Recommended Reading
-    
-        > `r capture.output(print(biblio["konvalinka2023role"]))`
-        
-    - A2: Analyzing physiological coordination
-    
-6. Advanced Multilevel Linear Models
-    - A2: Analyzing physiological coordination
-    
-7. Prediction and feature selection
-   - Slides
-   - Mandatory Readings
-   
-       > `r capture.output(print(biblio["kuhn2019a"]))`
-       
-   - A3: Is it possible to diagnose psychiatric condition from voice?
-8. Cumulative scientific approaches (meta-analysis) + mid-way evaluation
-    - Mandatory Reading
-    
-        > `r capture.output(print(biblio["parola2020voice"]))`
-        
-    - Recommended Readings
-    
-        > `r capture.output(print(biblio["parola2023voice"]))`
-        >  
-        > `r capture.output(print(biblio["grames2022systematic"]))`
-        >  
-        > `r capture.output(print(biblio["harrer2021"]))`
-        
-    - A3: Meta-analysis
-8. Classification problems and midway evaluation
-    - Slides
-    - Recommended Reading
-    
-        > `r capture.output(print(biblio["kuhn2019b"]))`
-        
-    - A4: Is it possible to diagnose psychiatric condition from voice?
-9. Generalized Multilevel Models and Classification
-    - Question on logistic regression and link functions
-10. No Lecture
-    - A4: Is it possible to diagnose psychiatric condition from voice?
-11. Machine Learning pipelines
-    - A4
-12. Machine Learning pipelines
-    - A4
-13. Machine Learning Pipelines
-    - A4
+
+| #Week |    Date    |            Subject           | Readings | Questions | Slides | Assignment | Tutor|
+|:--:|:--:|:--:|:--:|:---:|:--:|:--:|:--:|
+|1|Sept5<br />Sept7|Syllabus<br />Introduction to Git|**@dienes2008understanding**,[@vasishth2016statistical;@wickham2023]|[W1](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)| W1|A1|LWL
+|2|Sept12<br />Sept14|Introduction/Refresher,<br />Bayesian statistics||[W2](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W2|A1|MHSM
+|3|Sept19|Multilevel Linear Models I|**[@debruine2021understanding;@fusaroli2019hearing]**,[@harrison2018brief;@winter2019statistics]|[W3](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W3|A1|
+|4|Sept26<br />Sept28|Multilevel Linear Models II| |[W4](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W4|A2|LWL
+|5|Oct3<br />Oct5|Explanation vs. Prediction|**@rocca2021putting**,[@chekroud2018validation;@breiman2001statistical]|[W5](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W5|A2|MHSM
+|6|Oct10<br />Oct12|Physiological Data &<br />Advanced Multilevel Linear Models|**[@fusaroli2016heart;@ferrer2013dynamical]**,@konvalinka2023role|[W6](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W6|A3|LWL
+|7|  Oct24<br />Oct26  |Advanced Multilevel Linear Models||[W7](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W7|A3|MHSM
+|8| Oct31<br />Nov2 |Prediction &<br />Feature Selection|**@kuhn2019a**|[W8](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W8|A3|LWL
+|9|   Nov7<br />Nov9   |Cumulative Scientific Approaches<br />Midway Evaluation|**@parola2020voice**,[@parola2023voice;@grames2022systematic;@harrer2021]|[W9](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W9|A4|MHSM
+|10|  Nov14<br />Nov16  |Classification problems|[@kuhn2019b]|[W10](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W10|A4|LWL
+|11|  Nov21<br />Nov23  |Generalized Multilevel Models & Classification||[W11](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W11|A4|MHSM
+|   12  |  Nov28<br />Nov30  |Machine Learning Pipelines I||[W12](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W12|A4|LWL
+|   13  |   Dec5<br />Dec7  |Machine Learning Pipelines II||[W13](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W13|A4|MHSM
+
+
+## References
