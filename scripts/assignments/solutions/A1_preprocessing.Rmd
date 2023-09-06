@@ -1,49 +1,83 @@
 ---
-title: "Assignment 1 - Solution"
-author: "Riccardo Fusaroli"
-date: "08/08/2019"
-output: html_document
+title: "Assignment 0: Data Cleaning"
+subtitle: 'Instructions'
+author: "[FILL IN YOUR NAME]"
+date: "[FILL IN THE DATE]"
+output:
+  html_document:
+      toc: yes
+      number_sections: yes
+      toc_float: yes
+      theme: united
+      highlight: zenburn
+geometry: margin=1in
+knit: (function(inputFile, encoding) {
+  browseURL(
+    rmarkdown::render(
+      inputFile,
+      encoding = encoding,
+      output_file = "A0.html"))})
+bibliography: '../../../data/bibliography.bib'
 ---
 
-# Assignment 1, Language development in Autism Spectrum Disorder (ASD) - Brushing up your code skills
+<style type="text/css">
+body, td {font-size: 18px; font-family: 'Courier New', monospace;}
+code.r{font-size: 18px;}
+pre {font-size: 18px}
+blockquote {font-size: 18px;}
+h{font-family: 'Courier New', monospace;}
+h1{text-transform: uppercase}
+h2{font-variant: small-caps;}
+</style>
 
-In this first part of the assignment we will brush up your programming skills, and make you familiar with the data sets you will be analysing for the next parts of the assignment.
+The objective of this warm-up assignment is to brush up your programming and data wrangling skills as well as to introduce you to the data set you will be working on in Assignment 1. More precisely, you will here be asked here to do the following:
 
-In this warm-up assignment you will:
-1) Create a Github (or gitlab) account, link it to your RStudio, and create a new repository/project
-2) Use small nifty lines of code to transform several data sets into just one. The final data set will contain only the variables that are needed for the analysis in the next parts of the assignment
-3) Warm up your tidyverse skills (especially the sub-packages stringr and dplyr), which you will find handy for later assignments.
+1. Introduction to the data set
+2. Introduction to version control
+   - Create a Github (or gitlab) account
+   - Link your Git account to your RStudio
+   - Create a new repository/project
+3. Data Manipulation refresher
+  - Transform several data sets into a single one
+    - Filter data so as to keep only the variables needed for next assignments
+    - Tidyverse packages (**stringr** and **dplyr**)
 
+## About the dataset
 
-## 0. First an introduction on the data
+Project: Language development in Autism Spectrum Disorder (ASD)
 
-# Language development in Autism Spectrum Disorder (ASD)
-
-Reference to the study: https://www.ncbi.nlm.nih.gov/pubmed/30396129
+Source: [Fusaroli, Riccardo, Ethan Weed, Deborah Fein, and Letitia Naigles. 2019. “Hearing Me Hearing You: Reciprocal Effects Between Child and Parent Language in Autism and Typical Development.” Cognition 183: 1–18.](https://www.ncbi.nlm.nih.gov/pubmed/30396129)
 
 Background: Autism Spectrum Disorder (ASD) is often related to language impairment, and language impairment strongly affects the patients ability to function socially (maintaining a social network, thriving at work, etc.). It is therefore crucial to understand how language abilities develop in children with ASD, and which factors affect them (to figure out e.g. how a child will develop in the future and whether there is a need for language therapy).
-However, language impairment is always quantified by relying on the parent, teacher or clinician subjective judgment of the child, and measured very sparcely (e.g. at 3 years of age and again at 6). 
 
-In this study we videotaped circa 30 kids with ASD and circa 30 comparison kids (matched by linguistic performance at visit 1) for ca. 30 minutes of naturalistic interactions with a parent. We repeated the data collection 6 times per kid, with 4 months between each visit. We transcribed the data and counted: 
-i) the amount of words that each kid uses in each video. Same for the parent.
-ii) the amount of unique words that each kid uses in each video. Same for the parent.
-iii) the amount of morphemes per utterance (Mean Length of Utterance) displayed by each child in each video. Same for the parent. 
+However, language impairment is always assessed by relying on the parent, teacher or clinician's subjective judgment of the child, and measured very sparsely (e.g. at 3 years old and again at 6). To help address this gap in clinical practice, we videotaped around 30 kids with ASD and around 30 comparison kids (matched by linguistic performance at visit 1) for approximately 30 minutes of naturalistic interactions with a parent. We repeated the data collection 6 times per kid at an interval of 4 months between each visit.
 
-Different researchers involved in the project provide you with different datasets: 
+We transcribed the data and counted:
+
+1) the amount of words that each kid uses in each video. Same for the parent.
+2) the amount of unique words that each kid uses in each video. Same for the parent.
+3) the amount of morphemes per utterance (Mean Length of Utterance) displayed by each child in each video. Same for the parent. 
+
+Different datasets were built by the researchers involved in the project:
+
 1) demographic and clinical data about the children (recorded by a clinical psychologist)
 2) length of utterance data (calculated by a linguist)
-3) amount of unique and total words used (calculated by a fumbling jack-of-all-trade, let's call him RF)
+3) amount of unique and total words used
 
-Your job in this assignment is to double check the data and make sure that it is ready for the analysis proper (Assignment 2), in which we will try to understand how the children's language develops as they grow as a function of cognitive and social factors and which are the "cues" suggesting a likely future language impairment.
+Your job in this assignment is to double-check the data and make it analysis-ready for the next assignment, in which we will try to understand how children language development is a function of cognitive and social factors and how the latter can be used as "cues" to likely future language impairments.
 
-## 1. Let's get started on GitHub
+## Let's get started on GitHub
 
 In the assignments you will be asked to upload your code on Github and the GitHub repositories will be part of the portfolio, therefore all students must make an account and link it to their RStudio (you'll thank us later for this!).
 
-Follow the link to one of the tutorials indicated in the syllabus: 
-* Recommended: https://happygitwithr.com/
-*	Alternative (if the previous doesn't work): https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN
-*	Alternative (if the previous doesn't work): https://docs.google.com/document/d/1WvApy4ayQcZaLRpD6bvAqhWncUaPmmRimT016-PrLBk/mobilebasic
+- Install [latest **R** version](https://mirrors.dotsrc.org/cran/)
+- Install [latest **RStudio** version](https://posit.co/download/rstudio-desktop/)
+
+Follow the link to one of the tutorials indicated in the syllabus:
+
+- [Happy Git with R](https://happygitwithr.com/)
+- [Alternative1](https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN)
+- [Alternative2](https://docs.google.com/document/d/1WvApy4ayQcZaLRpD6bvAqhWncUaPmmRimT016-PrLBk/mobilebasic)
 
 N.B. Create a GitHub repository for the Assignment 1 and link it to a project on your RStudio.
 
@@ -63,9 +97,9 @@ Load the three data sets, after downloading them from dropbox and saving them in
 * Word data: https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0
 
 ```{r}
-Demo <- read_csv("Assignments22/0_Preprocessing/data/demo_train.csv")
-LU <- read_csv('Assignments22/0_Preprocessing/data/LU_train.csv')
-Word <- read_csv('Assignments22/0_Preprocessing/data/token_train.csv')
+Demo <- read_csv("../data/demo_train.csv")
+LU <- read_csv('../data/LU_train.csv')
+Word <- read_csv('../data/token_train.csv')
 ```
 
 Explore the 3 data sets (e.g. visualize them, summarize them, etc.). You will see that the data is messy, since the psychologist collected the demographic data, the linguist analyzed the length of utterance in May 2014 and the fumbling jack-of-all-trades analyzed the words several months later. 

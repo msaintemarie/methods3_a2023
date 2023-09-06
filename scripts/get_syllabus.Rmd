@@ -22,13 +22,6 @@ title: "Methods 3: Multilevel Statistical Modeling and Machine Learning"
 author: Maxime Sainte-Marie
 date: "Autumn 2023"
 
-email: "mshm@cc.au.dk"
-web: "svmiller.com/teaching"
-officehours: "\\shrug"
-office: "\\shrug"
-classroom: "\\shrug"
-classhours: "\\shrug"
-
 ---
 
 <style type="text/css">
@@ -77,88 +70,8 @@ library(bibtex)
 library(RefManageR)
 library(knitcitations)
 library(rcrossref)
-#bib <- rbibutils::readBib('../data/bibliography.bib')
-#bibtex::read.bib("../data/bibliography.bib")
-#myopts <- BibOptions(bib.style = "authoryear", style="latex", first.inits=FALSE, max.names = 20)
 biblio <- bibtex::read.bib("../scripts/bibliography.bib")
 
-
-# Create a calendar for your syllabus ----
-# Source: http://svmiller.com/blog/2020/08/a-ggplot-calendar-for-your-semester/
-
-# 1) what is the first Monday of the semester?
-# Any number of ways to identify dates in R, but we'll use {lubridate} and the ymd() function here.
-# Format: YYYYMMDD. In this example, 4 January 2021.
-
-mon <- ymd(20210104)
-
-# What are some dates you won't be here? In this example, I had a conference on 7 January 2021.
-# Spring Break was 15 March 2021 to 19 March 2021.
-not_here_dates <- c(
-  # SPSA 2021,
-  ymd(20210107),
-  # Spring Break
-  seq(ymd(20210315),ymd(20210319), by=1))
-
-# You can adjust this as you see fit. Basically: add assignment types (e.g. papers, quizzes).
-# My intro class was fairly simple: just exams.
-exam_dates <- c(ymd(20210218), ymd(20210401), ymd(20210429))
-
-# What are the full dates of the semester? Here, I'll exclude exam week as I like to do.
-# In this case: 6 January to 23 April
-semester_dates <- seq(ymd(20210106), ymd(20210423), by=1)
-
-# Custom function for treating the first day of the month as the first week 
-# of the month up until the first Sunday (unless Sunday was the start of the month)
-wom <- function(date) {
-    first <- wday(as.Date(paste(year(date),month(date),1,sep="-")))
-    return((mday(date)+(first-2)) %/% 7+1)
-  }
-
-# Create a data frame of dates, assign to Cal
-tibble(date = seq(ymd(20210101), ymd(20210430), by=1))  %>%
-  mutate(mon = lubridate::month(date, label=T, abbr=F), # get month label
-         wkdy = weekdays(date, abbreviate=T), # get weekday label
-         wkdy = fct_relevel(wkdy, "Sun", "Mon", "Tue", "Wed", "Thu","Fri","Sat"), # make sure Sunday comes first
-         semester = ifelse(date %in% semester_dates, 1, 0), # is date part of the semester?
-         exams = ifelse(date %in% exam_dates, 1, 0), # is it an exam?
-         not_here = ifelse(date %in% not_here_dates, 1, 0), # is it a day off?
-         day = lubridate::mday(date), # get day of month to add later as a label
-         # Below: our custom wom() function
-         week = wom(date)) -> Cal
-
-# Create a category variable, for filling.
-# I can probably make this a case_when(), but this will work.
-
-Cal %>%
-  mutate(category = NA,
-         category = ifelse(semester == 1, "Semester", category),
-         category = ifelse(semester == 1 & wkdy %in% c("Tue", "Thu"), "Class Day", category),
-         category = ifelse(exams == 1, "Exams", category),
-         category = ifelse(is.na(category) | (semester == 1 & not_here == 1), "NA", category)) -> Cal 
-
-Cal %>% 
-  ggplot(.,aes(wkdy, week)) +
-  # custom theme stuff below
-  # theme_steve_web() + 
-  theme_bw() +
-  theme(panel.grid.major.x = element_blank()) +
-  # geom_tile and facet_wrap will do all the heavy lifting
-  geom_tile(alpha=0.8, aes(fill=category), color="black", size=.45) +
-  facet_wrap(~mon, scales="free", ncol=3) +
-  # fill in tiles to make it look more "calendary" (sic)
-  geom_text(aes(label=day)) +
-  # put your y-axis down, flip it, and reverse it
-  scale_y_reverse(breaks=NULL) +
-  # manually fill scale colors to something you like...
-  scale_fill_manual(values=c("Class Day"="steelblue", 
-                             "Semester"="lightsteelblue",
-                             "NA" = "white", # I like these whited out...
-                             "Exams"="indianred4"),
-                    #... but also suppress a label for a non-class semester day
-                    breaks=c("Class Day","Exams")) +
-  labs(fill = "", x="", y="",
-       caption = "Notable dates: SPSA 2021 (7 January), Spring Break (15-19 March)")  -> class_cal
 ```
 
 ## Description
