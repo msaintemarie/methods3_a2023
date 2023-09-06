@@ -6,6 +6,7 @@ output:
       toc_float: yes
       theme: united
       highlight: zenburn
+      css: 'varia/standard.css'
 geometry: margin=1in
 knit: (function(inputFile, encoding) {
   browseURL(
@@ -13,9 +14,9 @@ knit: (function(inputFile, encoding) {
       inputFile,
       encoding = encoding,
       output_file = "syllabus.html",
-      output_dir = '../documents/'))})
-bibliography: '../scripts/bibliography.bib'
-csl: '../scripts/vancouver.csl'
+      output_dir = 'documents/'))})
+bibliography: 'varia/bibliography.bib'
+csl: 'varia/vancouver.csl'
 link-citations: true
 
 title: "Methods 3: Multilevel Statistical Modeling and Machine Learning"
@@ -24,24 +25,14 @@ date: "Autumn 2023"
 
 ---
 
-<style type="text/css">
-body, td {font-size: 18px; font-family: 'Courier New', monospace;}
-code.r{font-size: 18px;}
-pre {font-size: 18px}
-blockquote {font-size: 18px;}
-h{font-family: 'Courier New', monospace;}
-h1{text-transform: uppercase}
-h2{font-variant: small-caps;}
-.table-wrapper {overflow-x: scroll;}
-</style>
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=F,
                       fig.path = 'figs/',
                       cache.path='cache/',
                       warning=F,
-                      message=F)
+                      message=F,
+                      root_dir = rprojroot::find_rstudio_root_file())
 
 knitr::opts_chunk$set(
                   fig.process = function(x) {
@@ -70,7 +61,7 @@ library(bibtex)
 library(RefManageR)
 library(knitcitations)
 library(rcrossref)
-biblio <- bibtex::read.bib("../scripts/bibliography.bib")
+biblio <- bibtex::read.bib("varia/bibliography.bib")
 
 ```
 

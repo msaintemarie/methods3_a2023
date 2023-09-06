@@ -1,0 +1,32 @@
+<style type="text/css">
+blockquote{font-size: 18px;}
+.list-group-item{
+	color: #586e75;
+	background-color: #eee8d5;
+	font-size:14px;
+    font-family:helvetica;}
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    background-color: #cb4b16;
+    color: #eee8d5;
+}
+h{color: #626262}
+h1{text-transform: uppercase;}
+h2{font-variant: small-caps;margin-bottom:20px;margin-top:35px;}
+h3{font-size:24px; font-variant: small-caps;margin-bottom:20px;margin-top:30px;}
+p{margin-top:20px;}
+html{
+  background-color: #eee8d5;
+  color: #586e75;
+  margin: 1em;
+}
+body{
+  background-color: #fdf6e3;
+  color: #586e75;
+  font-size: 18px;
+  font-family: 'Courier New', monospace;
+}
+pre {
+  font-size: 18px;
+}
+
+</style>
