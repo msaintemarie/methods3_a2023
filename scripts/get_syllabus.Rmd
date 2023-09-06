@@ -14,8 +14,8 @@ knit: (function(inputFile, encoding) {
       encoding = encoding,
       output_file = "syllabus.html",
       output_dir = '../documents/'))})
-bibliography: '../data/bibliography.bib'
-csl: '../data/vancouver.csl'
+bibliography: '../scripts/bibliography.bib'
+csl: '../scripts/vancouver.csl'
 link-citations: true
 
 title: "Methods 3: Multilevel Statistical Modeling and Machine Learning"
@@ -80,7 +80,7 @@ library(rcrossref)
 #bib <- rbibutils::readBib('../data/bibliography.bib')
 #bibtex::read.bib("../data/bibliography.bib")
 #myopts <- BibOptions(bib.style = "authoryear", style="latex", first.inits=FALSE, max.names = 20)
-biblio <- bibtex::read.bib("../data/bibliography.bib")
+biblio <- bibtex::read.bib("../scripts/bibliography.bib")
 
 
 # Create a calendar for your syllabus ----
@@ -221,7 +221,7 @@ Mandatory readings are written in **bold** characters
 
 | #Week |    Date    |            Subject           | Readings | Questions | Slides | Assignment | Tutor|
 |:--:|:--:|:--:|:--:|:---:|:--:|:--:|:--:|
-|1|Sept5<br />Sept7|Syllabus<br />Introduction to Git|**@dienes2008understanding**,[@vasishth2016statistical;@wickham2023]|[W1](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)| W1|A1|LWL
+|1|Sept5<br />Sept7|Syllabus<br />Introduction to Git|**@dienes2008understanding**,[@vasishth2016statistical;@wickham2023]|[W1](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)| [W1](https://www.dropbox.com/scl/fi/31bddqaskwyl0r1wuuvbr/w1_git.html?rlkey=5cp78rsuggawa2msv1ss33nu4&dl=0)|A1|LWL
 |2|Sept12<br />Sept14|Introduction/Refresher,<br />Bayesian statistics||[W2](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W2|A1|MHSM
 |3|Sept19|Multilevel Linear Models I|**[@debruine2021understanding;@fusaroli2019hearing]**,[@harrison2018brief;@winter2019statistics]|[W3](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W3|A1|
 |4|Sept26<br />Sept28|Multilevel Linear Models II| |[W4](https://docs.google.com/document/d/1M22sWase0NVfk4m8mkQZyrxdSiDEjchsOmthTVt6xxQ/edit?usp=sharing)|W4|A2|LWL
