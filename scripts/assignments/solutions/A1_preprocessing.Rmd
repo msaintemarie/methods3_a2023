@@ -1,8 +1,7 @@
 ---
-title: "Assignment 0: Data Cleaning"
-subtitle: 'Instructions'
-author: "[FILL IN YOUR NAME]"
-date: "[FILL IN THE DATE]"
+title: "Assignment 0: Git Hub Setting and Data Cleaning"
+subtitle: 'Solutions'
+author: Maxime Sainte-Marie
 output:
   html_document:
       toc: yes
@@ -16,8 +15,9 @@ knit: (function(inputFile, encoding) {
     rmarkdown::render(
       inputFile,
       encoding = encoding,
+      output_dir = '../documents/assignments/solutions',
       output_file = "A0.html"))})
-bibliography: '../../../data/bibliography.bib'
+bibliography: '../scripts/bibliography.bib'
 ---
 
 <style type="text/css">
@@ -97,7 +97,7 @@ Load the three data sets, after downloading them from dropbox and saving them in
 * Word data: https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0
 
 ```{r}
-Demo <- read_csv("../data/demo_train.csv")
+Demo <- read_csv("../../")
 LU <- read_csv('../data/LU_train.csv')
 Word <- read_csv('../data/token_train.csv')
 ```
