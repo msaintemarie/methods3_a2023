@@ -1,6 +1,6 @@
 ---
 title: "Assignment 1 (A1): Git Hub Configuration and Data Cleaning"
-subtitle: 'Solutions'
+subtitle: 'Instructions'
 output:
   html_document:
       toc: yes
@@ -15,7 +15,7 @@ knit: (function(inputFile, encoding) {
     rmarkdown::render(
       inputFile,
       encoding = encoding,
-      output_dir = 'documents/assignments/solutions',
+      output_dir = 'documents/assignments/instructions',
       output_file = "a1_preprocessing.html"))})
 bibliography: '../../varia/bibliography.bib'
 ---
@@ -72,10 +72,9 @@ Your job in this assignment is to double-check the data and make it analysis-rea
 If you have created a Rstudio project for this assignment, the working directory for this assignment (the default path for any function, procedure or command that works on files) is the project directory. If you have decided otherwise, first make sure that you set your working directory to the path of the current RMarkdown file. You can also use the following code chunk to install and/or load the packages you will need for the tasks below.
 
 ```{r setup}
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file()) 
-pacman::p_load(tidyverse,
-               janitor,
-               here)
+### Write your code here
+
+
 ```
 
 Load the following three data sets, after downloading them from dropbox and saving them in your working directory:
@@ -85,9 +84,9 @@ Load the following three data sets, after downloading them from dropbox and savi
 - [Word data](https://www.dropbox.com/scl/fi/h4dop19ctdubhokbfsn2q/token_train.csv?rlkey=wffzcf1211bglrx8239g3e0h8&dl=0)
 
 ```{r import_datasets, message = FALSE}
-Demo <- read_csv('data/demo_train.csv')
-LU <- read_csv('data/LU_train.csv')
-Word <- read_csv('data/token_train.csv')
+### Write your code here
+
+
 ```
 
 Using various visualisation and aggregation procedures, explore these data sets and try to compare them to each other and draw parallel. You'll quickly notice that this is not an easy task. This is in part due to the fact that the different data sets were built by different researchers at different points in time. In particular, you'll find out that: 
@@ -112,14 +111,9 @@ Many different procedures can be used here, and unless you have to deal with gig
 
 
 ```{r rename_variables}
-compare_df_cols(LU,
-                Word,
-                Demo)
+### Write your code here
 
-Speech <- merge(LU, Word) %>% 
-  rename(Child.ID = SUBJ, Visit = VISIT)
 
-compare_df_cols(Speech, Demo)
 ```
 
 **2. Renaming values**
@@ -128,7 +122,9 @@ Find a way to homogenize the way "visit" is reported amongst the different datas
 
 
 ```{r extract_digits}
-Speech$Visit <- as.integer(str_extract(Speech$Visit, "\\d"))
+### Write your code here
+
+
 ```
 
 A similar task needs to be done regarding the value names of the Child.ID variable in the demographic data set. The values of this variable that are not abbreviated do not end with "." (i.e. Adam), whereas they do in the other two data sets (i.e. Adam.). Key merges, that is, merging of data sets based on shared variables, can only be done is the latter have overlapping value names; if no identical value names can be found, nothing will be merged. In the present case, a simple way to ensure this consists in removing all points from the values of the corresponding variables. The package **stringr** can again be of help here, notably the function **str_replace_all()**.
@@ -137,10 +133,7 @@ A similar task needs to be done regarding the value names of the Child.ID variab
 
 
 ```{r remove_points}
-### one-liner
-Speech$Child.ID <-  str_replace_all(Speech$Child.ID,"\\.", "")
-
-Demo$Child.ID <-  str_replace_all(Demo$Child.ID,"\\.", "")
+### Write your code here
 
 
 ```
@@ -175,18 +168,16 @@ Most variables names should make sense, that is, should be straightforward as re
 * *MLU* stands for 'Mean Length of Utterance'
 * *types* stands for unique words. For example, the same word appearing multiple times only accounts for 1 word type.
 * *tokens* stands for overall amount of words. Each occurrence of any word is a token. This example will help better understand the type/token distinction: in the sentence "the horse is a horse, of course, of course", there are 9 tokens (9 words in all), but only 6 types (the, horse, is, a, of, course).
-* *MullenRaw* indicates non verbal IQ, as measured by the Mullen Scales of Early Learning (MSEL). Source: [@lee2013mullen](https://link.springer.com/referenceworkentry/10.1007%2F978-1-4419-1698-3_596)
+* *MullenRaw* indicates non verbal IQ, as measured by the Mullen Scales of Early Learning (MSEL)[@lee2013mullen](https://link.springer.com/referenceworkentry/10.1007%2F978-1-4419-1698-3_596)
 * *ExpressiveLangRaw* indicates verbal IQ, as measured by MSEL
-* *Socialization* indicates social interaction skills and social responsiveness. Source: [@volkmar1987social](https://www.sciencedirect.com/science/article/abs/pii/S0890856709656434)
+* *Socialization* indicates social interaction skills and social responsiveness, as measured by [@volkmar1987social](https://www.sciencedirect.com/science/article/abs/pii/S0890856709656434)
 
 Feel free to rename the variables into something you think is more intuitive (i.e. *nonVerbalIQ*, *verbalIQ*)
 
 ```{r rename_selected_variables}
+### Write your code here
 
-Demo <- Demo %>% 
-  select(c("Child.ID", "Visit", "Ethnicity", "Diagnosis", "Gender", "Age", "ADOS", "MullenRaw", "ExpressiveLangRaw","Socialization"))
-Speech <- Speech %>% 
-  select(c("Child.ID", "Visit", "MOT_MLU", "CHI_MLU", "types_MOT", "types_CHI", "tokens_MOT", "tokens_CHI"))
+
 ```
 
 **5. Data merge**
@@ -199,7 +190,8 @@ It is important here to check if merging the data sets:
 - has resulted in the creation of NAs within the merged data set. If this is so, it is important to understand why these NAs were created (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn).
 
 ```{r merge_data}
-Data <- merge(Demo, Speech, all = T)
+### Write your code here
+
 
 ```
 
@@ -215,15 +207,10 @@ A possible way to do so:
 
 
 ```{r add_first_visit_variables}
-Data1 <- Data %>% 
-  subset(Visit == 1) %>% 
-  select(Child.ID,
-         ADOS1 = ADOS,
-         verbalIQ1 = ExpressiveLangRaw,
-         nonVerbalIQ1 = MullenRaw,
-         Socialization1 = Socialization)
+### Write your code here
+
+
   
-Data2 <- merge(Data,Data1, all = T)
 ```
 
 **7. Reverse Encoding**
@@ -231,16 +218,9 @@ Data2 <- merge(Data,Data1, all = T)
 An important part of data cleaning is making sure both variable names and value allow for easy and intuitive analysis and interpretation. For example, the different values for the categorical variable *gender* have been encoded to '1' and '2', but these numbers are useless to anyone who doesn't have the proper encoding dictionary, which maps each number to the corresponding category, namely 'male' or 'female'. In the following code chunk, resolve this ambiguity by reversing the encoding of the gender variable, so that 1 and 2 are changed to F and M respectively. In the same vein, transform the 'Diagnosis' variable so that 'A's and 'B's are reverted back to ASD (Autism Spectrum Disorder) and TD (typically developing) respectively.
 
 ```{r revert_encoding}
-Data <- Data %>%
-  mutate(
-    Child.ID = as.numeric(as.factor(as.character(Child.ID))),
-    Visit = as.numeric(as.character(Visit)),
-    Gender = recode(Gender, 
-                    "1" = "Male",
-                    "2" = "Female"),
-    Diagnosis = recode(Diagnosis,
-                       "A"  = "ASD",
-                       "B"  = "TD"))
+### Write your code here
+
+
 ```
 
 **8. Saving cleaned data**
@@ -248,8 +228,8 @@ Data <- Data %>%
 Finally, save the cleaned data in Comma-Separated Values (CSV) format, under a name and at a location of your own choosing.
 
 ```{r save_changes}
+### Write your code here
 
-write_csv(Data, "data/cleaned_data.csv")
 
 ```
 
