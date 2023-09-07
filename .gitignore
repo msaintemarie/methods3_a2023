@@ -1,0 +1,12 @@
+.Rhistory
+.RData
+.Ruserdata
+figures/
+scripts/
+data/cleaned_data.csv
+data/data_clean.csv
+scripts/varia
+scripts/slides
+scripts/assignments/solutions
+documents/assignments/solutions
+.Rproj.user
