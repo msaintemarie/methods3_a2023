@@ -1,0 +1,15 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+/data/cleaned_data.csv
+/data/data_clean.csv
+/figures
+methods3_a2023.Rproj
+.Rhistory
+.RData
+.gitgnore
+/scripts/solution
+/varia
+/scripts/slides
+/documents/assignments/solutions
