@@ -1,6 +1,8 @@
 .Rhistory
 .RData
 .Ruserdata
+.Rproj.user/
+.DS_Store
 figures/
 scripts/
 data/cleaned_data.csv
@@ -13,5 +15,5 @@ Scripts/assignments/instructions/a3_metaanalysis.Rmd
 Scripts/assignments/instructions/a4p1_diagnosis_schizophrenia.Rmd
 Scripts/assignments/instructions/a4p2_schizophrenia_voice.Rmd
 documents/assignments/solutions
-.Rproj.user/
-.DS_Store
+
+
