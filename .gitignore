@@ -8,5 +8,9 @@ data/data_clean.csv
 scripts/varia
 scripts/slides
 scripts/assignments/solutions
+Scripts/assignments/instructions/a2_language_development.Rmd
+Scripts/assignments/instructions/a3_metaanalysis.Rmd
+Scripts/assignments/instructions/a4p1_diagnosis_schizophrenia.Rmd
+Scripts/assignments/instructions/a4p2_schizophrenia_voice.Rmd
 documents/assignments/solutions
 .Rproj.user
