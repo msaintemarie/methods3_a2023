@@ -4,7 +4,6 @@
 .Rproj.user/
 .DS_Store
 figures/
-scripts/
 data/cleaned_data.csv
 data/data_clean.csv
 scripts/varia
@@ -15,5 +14,5 @@ Scripts/assignments/instructions/a3_metaanalysis.Rmd
 Scripts/assignments/instructions/a4p1_diagnosis_schizophrenia.Rmd
 Scripts/assignments/instructions/a4p2_schizophrenia_voice.Rmd
 documents/assignments/solutions
-
+methods3_a2023.Rproj
 
