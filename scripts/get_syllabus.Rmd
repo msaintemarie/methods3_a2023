@@ -20,8 +20,11 @@ csl: 'varia/vancouver.csl'
 link-citations: true
 
 title: "Methods 3: Multilevel Statistical Modeling and Machine Learning"
-author: Maxime Sainte-Marie
+author:
+  name: Maxime Sainte-Marie
+  email: mhsm@cc.au.dk
 date: "Autumn 2023"
+
 
 ---
 
@@ -64,6 +67,8 @@ library(rcrossref)
 biblio <- bibtex::read.bib("varia/bibliography.bib")
 
 ```
+
+Course repository: [https://github.com/msaintemarie/methods3_a2023]()
 
 ## Description
 

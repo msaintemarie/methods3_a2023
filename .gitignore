@@ -4,6 +4,7 @@
 .Rproj.user/
 .DS_Store
 figures/
+readings/
 data/cleaned_data.csv
 data/data_clean.csv
 scripts/varia
