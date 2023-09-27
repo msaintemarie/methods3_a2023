@@ -10,7 +10,6 @@ scripts/get_syllabus.Rmd
 scripts/varia
 scripts/slides
 scripts/assignments/solutions
-scripts/assignments/instructions/a2_language_development.Rmd
 scripts/assignments/instructions/a3_meta_analysis.Rmd
 scripts/assignments/instructions/a4p1_diagnosis_schizophrenia.Rmd
 scripts/assignments/instructions/a4p2_schizophrenia_voice.Rmd

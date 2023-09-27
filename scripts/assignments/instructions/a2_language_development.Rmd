@@ -1,0 +1,215 @@
+---
+title: "Assignment 2 (A2): Language development in autistic and neurotypical children"
+subtitle: 'Instructions'
+author: Maxime Sainte-Marie
+output:
+  html_document:
+      toc: yes
+      number_sections: yes
+      toc_float: yes
+      theme: united
+      highlight: espresso
+      css: '../../varia/standard.css'
+  pdf_document:
+    toc: no
+    number_sections: yes
+geometry: margin=1in
+knit: (function(inputFile, encoding) {
+  browseURL(
+    rmarkdown::render(
+      inputFile,
+      encoding = encoding,
+      output_dir = 'documents/assignments/instructions',
+      output_file = "a2_language_development"))})
+bibliography: '../../varia/bibliography.bib'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file()) 
+
+if(!'cmdstanr' %in% installed.packages()){
+  remotes::install_github("stan-dev/cmdstanr")
+  cmdstanr::install_cmdstan()}
+
+pacman::p_load(
+  tidyverse,
+  brms,
+  patchwork
+)
+```
+
+# Intro
+
+Autism Spectrum Disorder is often related to language impairment. However, this phenomenon has rarely been empirically traced in detail:
+
+1. relying on actual naturalistic language production
+2. over extended periods of time.
+
+Around 30 kids with ASD and 30 typically developing kids were videotaped (matched by linguistic performance at visit 1) for ca. 30 minutes of naturalistic interactions with a parent. Data collection was repeated 6 times per kid, with 4 months between each visit. Following transcription of the data, the following quantities were computed:
+
+1. the amount of words that each kid uses in each video. Same for the parent
+2. the amount of unique words that each kid uses in each video. Same for the parent
+3. .the amount of morphemes per utterance (Mean Length of Utterance) displayed by each child in each video. Same for the parent. 
+
+This data is in the file you prepared in the previous class, but you can also find it [here](https://www.dropbox.com/s/d6eerv6cl6eksf3/data_clean.csv?dl=0)
+
+
+## Assignment structure
+
+We will be spending a few weeks with this assignment. In particular, we will:
+
+1. build our model, analyze our empirical data, and interpret the inferential results
+2. use your model to predict the linguistic trajectory of new children and assess the performance of the model based on that.
+
+As you work through these parts, you will have to produce a written document (separated from the code) answering the following questions:
+
+1. Briefly describe your simulation process, its goals, and what you have learned from the simulation. Add at least a plot showcasing the results of the simulation. Make a special note on sample size considerations: how much data do you think you will need? what else could you do to increase the precision of your estimates?
+2. Briefly describe the empirical data and how they compare to what you learned from the simulation (what can you learn from them?). Briefly describe your model(s) and model quality. Report the findings: how does development differ between autistic and neurotypical children (N.B. remember to report both population and individual level findings)? which additional factors should be included in the model? Add at least one plot showcasing your findings.
+3. Given the model(s) from Q2, how well do they predict the data? Discuss both in terms of absolute error in training vs testing; and in terms of characterizing the new kids' language development as typical or in need of support.
+
+Below you can find more detailed instructions for each part of the assignment.
+
+# Analysis
+
+- Describe your sample (n, age, gender, clinical and cognitive features of the two groups) using plots and critically assess whether the groups (ASD and TD) are balanced.
+
+- Describe linguistic development (in terms of MLU over time) in TD and ASD children (as a function of group). Discuss the difference (if any) between the two groups
+
+- Describe individual differences in linguistic development: do all kids follow the same path? Are all kids reflected by the general trend for their group?
+
+- Include additional predictors in your model of language development (N.B. not other indexes of child language: types and tokens, that'd be cheating). Identify the best model, by conceptual reasoning, model comparison or a mix. Report the model you choose (and name its competitors, if any) and discuss why it's the best model.
+
+In working through this part of the assignment, keep in mind the following workflow:
+
+1. Formula definition
+2. Prior definition
+3. Prior predictive checking
+4. Model fitting
+5. Model quality checks
+7. Model comparison
+
+```{r describe_data}
+# Write your code here
+
+
+```
+
+```{r set_variables}
+# Write your code here
+
+
+```
+
+## Formula Definition
+
+```{r define_formulas}
+# Write your code here
+
+
+```
+
+## Prior Definition
+
+```{r define_priors}
+# Write your code here
+
+
+```
+
+## Prior Predictive Checking
+
+By setting *sample_prior* parameter is set to "only" in the **brm** function, draws are drawn solely from the priors, thus ignoring the likelihood. This allows among other things to generate draws from the prior predictive distribution.
+
+```{r }
+# Write your code here
+
+
+```
+
+## Model Fitting
+
+```{r fit_model}
+# Write your code here
+
+
+```
+
+## Model quality checks
+
+```{r check_models}
+# Write your code here
+
+
+```
+
+## Model Comparison
+
+```{r compare_models}
+# Write your code here
+
+
+```
+
+```{r test_hypotheses}
+# Write your code here
+
+
+```
+
+
+# Prediction
+
+N.B. There are several data sets for this exercise, so pay attention to which one you are using!
+
+1. The (training) data set from last time
+2. The (test) data set on which you can test the models from last time:
+  - [Demographic and clinical data](https://www.dropbox.com/s/ra99bdvm6fzay3g/demo_test.csv?dl=1)
+  - [Utterance Length data](https://www.dropbox.com/s/uxtqqzl18nwxowq/LU_test.csv?dl=1)
+  - [Word data](https://www.dropbox.com/s/1ces4hv8kh0stov/token_test.csv?dl=1)
+
+Relying on the model(s) you trained in part 2 of the exercise, create predictions for the test set and assess how well they do compared to the actual data.
+
+- Discuss the differences in performance of your model in training and testing data. Is the model any good?
+- Let's assume you are a speech therapy clinic. You want to assess whether the kids in your test sample will have a typical (like a TD) development, or they will have a worse one, in which case they should get speech therapy support. What do your predictions tell you about that? Which kids would you provide therapy for? Is the model any good?
+
+```{r import_data}
+# Write your code here
+
+
+```
+
+Remove missing data to ease merging with predictions
+
+```{r remove_missing}
+# Write your code here
+
+
+```
+
+Here we should be using a model that'd have some more interesting predictors (to make sure we have something to predict)
+
+Alternatively we could retrain the model to include visit 1 for all the test kids (and thus have the random effects)
+
+```{r train_model}
+# Write your code here
+
+
+```
+
+Assess the performance of the model on the training data: root mean square error is a good measure. (Tip: google the function rmse())
+
+```{r assess_performance}
+# Write your code here
+
+
+```
+
+
+Show how child fare in Child MLU compared to the average TD child at each visit
+```{r child_performance_td_average}
+# Write your code here
+
+```
